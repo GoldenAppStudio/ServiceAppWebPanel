@@ -4,12 +4,19 @@
   "private": true,
   "homepage": "https://llorentegerman.github.io/react-admin-dashboard",
   "dependencies": {
+    "@material-ui/core": "^4.9.5",
+    "@material-ui/icons": "^4.9.1",
+    "@material-ui/lab": "^4.0.0-alpha.45",
     "aphrodite": "^2.3.1",
+    "firebase": "^7.10.0",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
+    "react-image-picker": "^1.1.1",
+    "react-india-state-region-selector": "^6.1.0",
     "react-scripts": "3.0.1",
     "react-svg-line-chart": "^2.0.1",
+    "react-swipeable-views": "^0.13.9",
     "simple-flexbox": "^2.2.1"
   },
   "scripts": {
