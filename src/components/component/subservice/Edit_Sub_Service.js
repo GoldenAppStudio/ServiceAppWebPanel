@@ -19,7 +19,7 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 
 const database = firebase.database();
 const ref = database.ref("ServiceList");
-
+var mSubServiceCount;
 export default class Edit_Sub_Service extends Component {
   constructor(props) {
     super(props);
@@ -92,6 +92,8 @@ export default class Edit_Sub_Service extends Component {
       [subService]: event.target.value,
       subServiceCount: event.target.selectedIndex
     });
+    mSubServiceCount = event.target.selectedIndex;
+    console.log(mSubServiceCount);
   };
 
   async return_data(i) {
@@ -100,7 +102,7 @@ export default class Edit_Sub_Service extends Component {
       .ref("ServiceList")
       .child(this.state.serviceCount)
       .child("subService")
-      .child(`${this.state.subServiceCount + 1 + i}`);
+      .child(`${mSubServiceCount + 1 + i}`);
 
     try {
       dataSnapshotVal = await ref2.once("value");
@@ -119,9 +121,8 @@ export default class Edit_Sub_Service extends Component {
   };
 
   async adjust_database() {
-    if (this.state.subServiceCount < this.state.subServiceList.length) {
-      var loopCount =
-        this.state.subServiceList.length - this.state.subServiceCount;
+    if (mSubServiceCount < this.state.subServiceList.length) {
+      var loopCount = this.state.subServiceList.length - mSubServiceCount;
       console.log(loopCount + " loopCount");
       for (var i = 0; i < loopCount; i++) {
         var newData = await this.return_data(i);
@@ -129,7 +130,7 @@ export default class Edit_Sub_Service extends Component {
         ref
           .child(this.state.serviceCount)
           .child("subService")
-          .child(`${this.state.subServiceCount + i}`)
+          .child(`${mSubServiceCount + i}`)
           .set(newData);
       }
     }

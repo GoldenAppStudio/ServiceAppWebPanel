@@ -44,15 +44,17 @@ var stateList = [];
 for (var i = 0; i < 35; i++) {
   var stateList = stateList.concat(state.states[i].state);
 }
+
 var mState, mDistrict, mService, mSubService;
 var distList = [];
+
 export default class ServiceProvider extends Component {
   constructor(props) {
     super(props);
     this.state = {
       open: false,
       count: 0,
-      start: true,
+      start: false,
       progress: 0,
       serviceX: "",
       subServiceX: "",
@@ -367,7 +369,7 @@ export default class ServiceProvider extends Component {
           </ExpansionPanelSummary>
         </ExpansionPanel>
         <Fab
-          //     onClick={this.handleClickOpen}
+          onClick={this.handleClickOpen}
           color="primary"
           aria-label="add"
           style={{ right: 35, position: "fixed", bottom: 35 }}
@@ -425,9 +427,9 @@ export default class ServiceProvider extends Component {
                 />
                 <TextField
                   id="outlined-full-width"
-                  label="Name of Company"
+                  label="Name"
                   style={{ marginTop: 23, width: 400 }}
-                  placeholder="Name of Company"
+                  placeholder="Name"
                   required
                   onChange={e => {
                     this.setState({ name: e.target.value });

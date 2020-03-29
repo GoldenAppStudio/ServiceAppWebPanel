@@ -19,7 +19,7 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 
 const database = firebase.database();
 const ref = database.ref("ServiceList");
-
+var mServiceCount;
 export default class Edit_Service extends Component {
   constructor(props) {
     super(props);
@@ -51,21 +51,18 @@ export default class Edit_Service extends Component {
     this.return_data(0);
     this.delete_service();
     this.adjust_database();
-    this.populate_service_list();
-    this.get_child_count();
+    /* this.populate_service_list();
+    this.get_child_count(); */
   };
 
   async populate_service_list() {
     await ref.once("value", snapshot => {
       snapshot.forEach(childSnapshot => {
-        if (childSnapshot.child("service").val() === "Travel") {
-        } else {
-          this.setState({
-            serviceList: this.state.serviceList.concat([
-              childSnapshot.child("service").val()
-            ])
-          });
-        }
+        this.setState({
+          serviceList: this.state.serviceList.concat([
+            childSnapshot.child("service").val()
+          ])
+        });
       });
     });
   }
@@ -83,16 +80,15 @@ export default class Edit_Service extends Component {
     this.setState({
       ...this.state,
       [service]: event.target.value,
-      serviceCount: event.target.selectedIndex + 1
+      serviceCount: event.target.selectedIndex
     });
-    console.log(event.target.selectedIndex);
+    mServiceCount = event.target.selectedIndex + 1;
+    console.log(mServiceCount);
   };
 
   async return_data(i) {
     var dataSnapshotVal;
-    var ref2 = database
-      .ref("ServiceList")
-      .child(`${this.state.serviceCount + 1 + i}`);
+    var ref2 = database.ref("ServiceList").child(`${mServiceCount + 1 + i}`);
     try {
       dataSnapshotVal = await ref2.once("value");
       return dataSnapshotVal.val();
@@ -101,19 +97,24 @@ export default class Edit_Service extends Component {
   }
 
   delete_service = () => {
-    ref.child(`${this.state.serviceCount}`).remove();
+    console.log(mServiceCount);
+
+    ref.child(`${mServiceCount}`).remove();
   };
 
   async adjust_database() {
-    if (this.state.serviceCount < this.state.count) {
-      var loopCount = this.state.count - this.state.serviceCount;
+    if (mServiceCount < this.state.count) {
+      var loopCount = this.state.count - mServiceCount;
+      console.log(loopCount + " loopCount");
+      console.log(this.state.count + " count");
       for (var i = 0; i < loopCount; i++) {
         var newData = await this.return_data(i);
         setTimeout(() => {}, 6);
-        ref.child(`${this.state.serviceCount + i}`).set(newData);
+        ref.child(`${mServiceCount + i}`).set(newData);
       }
     }
     ref.child(`${this.state.count}`).remove();
+
     setTimeout(() => {}, 3);
     window.location.reload();
     alert("Service removed from database.");

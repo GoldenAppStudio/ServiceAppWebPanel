@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import firebase from "firebase";
+import storage from "firebase";
 import clsx from "clsx";
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
@@ -14,6 +15,17 @@ import Divider from "@material-ui/core/Divider";
 const data = [];
 const db = firebase.firestore();
 const database = firebase.database();
+var storageRef = firebase.storage().ref();
+var spaceRef = storageRef.child("ads_images/1.jpg");
+var path = spaceRef.fullPath;
+var test;
+storageRef
+  .child("ads_images/1.jpg")
+  .getDownloadURL()
+  .then(function(url) {
+    test = url;
+  })
+  .catch(function(error) {});
 
 export default class NewServiceProvider extends Component {
   constructor(props) {
@@ -129,7 +141,19 @@ export default class NewServiceProvider extends Component {
           </div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
-          <div>
+          <img
+            src={test}
+            style={{
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "50%",
+              borderRadius: "50%",
+              width: 75,
+              height: 75
+            }}
+            alt="Avatar"
+          />
+
+          <div style={{ marginLeft: 20 }}>
             <Typography>{snapshot.description}</Typography>
           </div>
         </ExpansionPanelDetails>

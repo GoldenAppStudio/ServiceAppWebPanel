@@ -52,7 +52,7 @@ class App extends React.Component {
       case "SP":
         return <ServiceProvider />;
       default:
-        return <ServiceProvider />;
+        return <ContentComponent />;
     }
   }
 

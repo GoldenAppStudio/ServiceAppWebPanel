@@ -134,7 +134,7 @@ function SidebarComponent({ onChange, selectedItem }) {
             <MenuItemComponent
               title="OverView"
               icon={IconTickets}
-              //    onClick={() => onItemClicked("OverView")}
+              onClick={() => onItemClicked("OverView")}
               active={selectedItem === "OverView"}
             />
             <MenuItemComponent
