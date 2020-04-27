@@ -5,15 +5,14 @@ import AddIcon from "@material-ui/icons/Add";
 import { storage } from "../../Firebase";
 import firebase from "firebase";
 
-import CloudUploadIcon from "@material-ui/icons/CloudUpload";
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
-
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItem from "@material-ui/core/ListItem";
-import List from "@material-ui/core/List";
 import Divider from "@material-ui/core/Divider";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -32,12 +31,24 @@ const database = firebase.database();
 const ref = database.ref("ShowAd");
 var data = [];
 
+var test;
+var storageRef = firebase.storage().ref();
+storageRef
+  .child("ads_images/1.jpg")
+  .getDownloadURL()
+  .then(function (url) {
+    test = url;
+  })
+  .catch(function () {});
+
 export default class AdsManagement extends Component {
   constructor(props) {
     super(props);
     this.state = {
       open: false,
       count: 0,
+      scroll: "paper",
+      editing: false,
       progress: 0,
       name: "",
       shortDescription: "",
@@ -47,7 +58,7 @@ export default class AdsManagement extends Component {
       email: "",
       address: "",
       priority: 0,
-      website: ""
+      website: "",
     };
     this.interval = setInterval(
       () => this.setState({ time: Date.now() }),
@@ -82,7 +93,7 @@ export default class AdsManagement extends Component {
     reader.onloadend = () => {
       this.setState({
         file: file,
-        imagePreviewUrl: reader.result
+        imagePreviewUrl: reader.result,
       });
     };
 
@@ -90,7 +101,7 @@ export default class AdsManagement extends Component {
   }
 
   async get_child_count() {
-    await ref.once("value", snapshot => {
+    await ref.once("value", (snapshot) => {
       this.setState({ count: snapshot.numChildren() });
     });
   }
@@ -105,14 +116,14 @@ export default class AdsManagement extends Component {
       .put(this.state.file);
     uploadTask.on(
       "state_changed",
-      snapshot => {
+      (snapshot) => {
         // progrss function ....
         const progress = Math.round(
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100
         );
         this.setState({ progress });
       },
-      error => {
+      (error) => {
         // error function ....
         console.log(error);
       },
@@ -164,8 +175,59 @@ export default class AdsManagement extends Component {
       .set(this.state.website);
   }
 
-  edit_ad = snapshot => (event, expanded) => {
+  handleOpen = (scrollType) => () => {
+    this.setState({
+      editing: true,
+      scroll: scrollType,
+    });
+  };
+
+  handleClickClose = () => {
+    this.setState({ editing: false });
+  };
+
+  edit_ad = (snapshot) => () => {
     this.get_total_count(snapshot);
+    alert("here");
+    return (
+      <div>
+        <Button onClick={this.handleOpen("paper")}>scroll=paper</Button>
+        <Button onClick={this.handleOpen("body")}>scroll=body</Button>
+        <Dialog
+          open={this.state.editing}
+          onClose={this.handleClickClose}
+          scroll={this.state.scroll}
+          aria-labelledby="scroll-dialog-title"
+          aria-describedby="scroll-dialog-description"
+        >
+          <DialogTitle id="scroll-dialog-title">Subscribe</DialogTitle>
+          <DialogContent dividers={this.state.scroll === "paper"}>
+            <DialogContentText
+              id="scroll-dialog-description"
+              // ref={descriptionElementRef}
+              tabIndex={-1}
+            >
+              {[...new Array(50)]
+                .map(
+                  () => `Cras mattis consectetur purus sit amet fermentum.
+Cras justo odio, dapibus ac facilisis in, egestas eget quam.
+Morbi leo risus, porta ac consectetur ac, vestibulum at eros.
+Praesent commodo cursus magna, vel scelerisque nisl consectetur et.`
+                )
+                .join("\n")}
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.handleClickClose} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={this.handleClickClose} color="primary">
+              Subscribe
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </div>
+    );
   };
 
   delete_ad = (e, snapshot) => {
@@ -198,10 +260,10 @@ export default class AdsManagement extends Component {
     ref.child(this.state.count).remove();
     setTimeout(() => {}, 3);
     window.location.reload();
-    alert("Sub-Service removed from database.");
+    alert("In-App Ad removed from database.");
   }
 
-  get_ad_table = snapshot => {
+  get_ad_table = (snapshot) => {
     return (
       <ExpansionPanel>
         <ExpansionPanelSummary
@@ -235,8 +297,18 @@ export default class AdsManagement extends Component {
         </ExpansionPanelDetails>
         <Divider />
         <ExpansionPanelActions>
+          {/*  <Button
+            onClick={(e) => {
+              // this.setState({ editing: true });
+              // a// lert("hello");
+            }}
+            variant="outlined"
+            color="primary"
+          >
+            Edit
+          </Button> */}
           <Button
-            onClick={e => {
+            onClick={(e) => {
               this.delete_ad(e, snapshot.id);
             }}
             variant="outlined"
@@ -262,7 +334,7 @@ export default class AdsManagement extends Component {
       marginTop: 20,
       padding: 10,
       width: 375,
-      cursor: "pointer"
+      cursor: "pointer",
     };
 
     const imagePreviewStyle = {
@@ -275,7 +347,7 @@ export default class AdsManagement extends Component {
       borderLeft: "1px solid gray",
       borderRight: "1px solid gray",
       borderTop: "5px solid gray",
-      borderBottom: "5px solid gray"
+      borderBottom: "5px solid gray",
     };
 
     let { imagePreviewUrl } = this.state;
@@ -284,12 +356,13 @@ export default class AdsManagement extends Component {
     if (imagePreviewUrl) {
       $imagePreview = (
         <img
+          alt={"this"}
           src={imagePreviewUrl}
           style={{
             height: 123,
             width: 150,
             textAlign: "center",
-            marginTop: 25
+            marginTop: 25,
           }}
         />
       );
@@ -344,7 +417,7 @@ export default class AdsManagement extends Component {
         >
           <AppBar
             style={{
-              position: "relative"
+              position: "relative",
             }}
           >
             <Toolbar>
@@ -360,7 +433,7 @@ export default class AdsManagement extends Component {
                 variant="h6"
                 style={{
                   marginLeft: 8,
-                  flex: 1
+                  flex: 1,
                 }}
               >
                 Serve new In-App Ad
@@ -383,7 +456,7 @@ export default class AdsManagement extends Component {
                   className="fileInput"
                   type="file"
                   style={fileInputStyle}
-                  onChange={e => this.handleImageChange(e)}
+                  onChange={(e) => this.handleImageChange(e)}
                 />
                 <TextField
                   id="outlined-full-width"
@@ -391,13 +464,13 @@ export default class AdsManagement extends Component {
                   style={{ marginTop: 23, width: 400 }}
                   placeholder="Name of Company"
                   required
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ name: e.target.value });
                   }}
                   name="name"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
@@ -407,13 +480,13 @@ export default class AdsManagement extends Component {
                   style={{ marginTop: 23, width: 400 }}
                   placeholder="Email"
                   required
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ email: e.target.value });
                   }}
                   name="email"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
@@ -423,13 +496,13 @@ export default class AdsManagement extends Component {
                   style={{ marginTop: 23, width: 400 }}
                   placeholder="Phone"
                   required
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ phone: e.target.value });
                   }}
                   name="phone"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
@@ -439,13 +512,13 @@ export default class AdsManagement extends Component {
                   style={{ marginTop: 23, width: 400 }}
                   placeholder="Website"
                   required
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ website: e.target.value });
                   }}
                   name="website"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
@@ -455,13 +528,13 @@ export default class AdsManagement extends Component {
                   style={{ marginTop: 23, width: 400 }}
                   placeholder="Address"
                   required
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ address: e.target.value });
                   }}
                   name="address"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
@@ -476,13 +549,13 @@ export default class AdsManagement extends Component {
                   style={{ marginTop: 23, width: "100%" }}
                   placeholder="Short Description"
                   required
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ shortDescription: e.target.value });
                   }}
                   name="shortDescription"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
@@ -492,13 +565,13 @@ export default class AdsManagement extends Component {
                   style={{ marginTop: 23, width: "100%" }}
                   placeholder="Long Description"
                   required
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ longDescription: e.target.value });
                   }}
                   name="longDescription"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
@@ -508,13 +581,13 @@ export default class AdsManagement extends Component {
                   style={{ marginTop: 23, width: "100%" }}
                   placeholder="Priority"
                   required
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ priority: e.target.value });
                   }}
                   name="priority"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
@@ -522,11 +595,12 @@ export default class AdsManagement extends Component {
             </Grid>
           </div>
         </Dialog>
-        {data === null || data === undefined || data.length == 0 ? (
+        {data === null || data === undefined || data.length === 0 ? (
           <div></div>
         ) : (
           data.map(this.get_ad_table)
         )}
+        {this.state.editing ? this.edit_ad() : <div></div>}
       </div>
     );
   }

@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { storage } from "../../../Firebase";
-import Progress from "./Progress";
 import firebase from "firebase";
 
 import Button from "@material-ui/core/Button";
@@ -22,11 +21,11 @@ class FileUpload extends Component {
       progress: 0,
       serviceName: "",
       count: 0,
-      isCountAvailable: false
+      isCountAvailable: false,
     };
   }
 
-  updateInput = event => {
+  updateInput = (event) => {
     this.setState({ serviceName: event.target.value });
   };
 
@@ -39,7 +38,7 @@ class FileUpload extends Component {
     reader.onloadend = () => {
       this.setState({
         file: file,
-        imagePreviewUrl: reader.result
+        imagePreviewUrl: reader.result,
       });
     };
 
@@ -47,13 +46,13 @@ class FileUpload extends Component {
   }
 
   get_child_count = () => {
-    ref.once("value", snapshot => {
+    ref.once("value", (snapshot) => {
       this.setState({ count: snapshot.numChildren() });
     });
   };
 
   add_service = () => {
-    if (this.state.count == 0) {
+    if (this.state.count === 0) {
       setTimeout(() => {}, 2);
       alert("Connection timeout! Please try again");
     } else {
@@ -70,14 +69,14 @@ class FileUpload extends Component {
       .put(this.state.file);
     uploadTask.on(
       "state_changed",
-      snapshot => {
+      (snapshot) => {
         // progrss function ....
         const progress = Math.round(
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100
         );
         this.setState({ progress });
       },
-      error => {
+      (error) => {
         // error function ....
         console.log(error);
       },
@@ -94,7 +93,7 @@ class FileUpload extends Component {
     this.get_child_count();
     this.upload_image();
     this.setState({
-      count: 0
+      count: 0,
     });
   };
 
@@ -107,7 +106,7 @@ class FileUpload extends Component {
       marginTop: 20,
       padding: 10,
       width: 420,
-      cursor: "pointer"
+      cursor: "pointer",
     };
 
     const imagePreviewStyle = {
@@ -120,7 +119,7 @@ class FileUpload extends Component {
       borderLeft: "1px solid gray",
       borderRight: "1px solid gray",
       borderTop: "5px solid gray",
-      borderBottom: "5px solid gray"
+      borderBottom: "5px solid gray",
     };
 
     let { imagePreviewUrl } = this.state;
@@ -129,12 +128,13 @@ class FileUpload extends Component {
     if (imagePreviewUrl) {
       $imagePreview = (
         <img
+          alt=""
           src={imagePreviewUrl}
           style={{
             height: 123,
             width: 150,
             textAlign: "center",
-            marginTop: 25
+            marginTop: 25,
           }}
         />
       );
@@ -159,7 +159,7 @@ class FileUpload extends Component {
                   className="fileInput"
                   type="file"
                   style={fileInputStyle}
-                  onChange={e => this.handleImageChange(e)}
+                  onChange={(e) => this.handleImageChange(e)}
                 />
                 <TextField
                   id="outlined-full-width"
@@ -171,7 +171,7 @@ class FileUpload extends Component {
                   name="serviceName"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
@@ -180,7 +180,7 @@ class FileUpload extends Component {
                   color="primary"
                   style={{
                     width: "100%",
-                    marginTop: 35
+                    marginTop: 35,
                   }}
                   onClick={this.handleUpload}
                   startIcon={<CloudUploadIcon />}

@@ -7,8 +7,8 @@ import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
-import Edit_Service from "./service/Edit_Service";
-import Edit_Sub_Service from "./subservice/Edit_Sub_Service";
+import DeleteService from "./service/DeleteService";
+import DeleteSubService from "./subservice/DeleteSubService";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -68,7 +68,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function EditService() {
+export default function DeleteTheService() {
   const classes = useStyles();
   const theme = useTheme();
 
@@ -130,12 +130,12 @@ export default function EditService() {
         onChangeIndex={handleChangeIndex}
       >
         <TabPanel value={value} index={0} dir={theme.direction}>
-          <h1>Edit Service</h1>
-          <Edit_Service />
+          <h1>Delete Service.</h1>
+          <DeleteService />
         </TabPanel>
         <TabPanel value={value} index={1} dir={theme.direction}>
-          <h1>Edit Sub-Service</h1>
-          <Edit_Sub_Service />
+          <h1>Delete Sub-Service</h1>
+          <DeleteSubService />
         </TabPanel>
       </SwipeableViews>
     </div>

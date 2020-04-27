@@ -1,16 +1,12 @@
 import React, { Component } from "react";
-import InputLabel from "@material-ui/core/InputLabel";
 import FormHelperText from "@material-ui/core/FormHelperText";
-import FormControl from "@material-ui/core/FormControl";
-import Select from "@material-ui/core/Select";
 import NativeSelect from "@material-ui/core/NativeSelect";
-import { storage } from "../../../Firebase";
 import firebase from "firebase";
 import Button from "@material-ui/core/Button";
 import Delete from "@material-ui/icons/Delete";
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
-
+import { storage } from "../../../Firebase";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -19,7 +15,20 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 
 const database = firebase.database();
 const ref = database.ref("ServiceList");
+const db = database.ref("Service");
+
 var mSubServiceCount;
+
+var test;
+var storageRef = firebase.storage().ref();
+storageRef
+  .child("ads_images/1.jpg")
+  .getDownloadURL()
+  .then(function (url) {
+    test = url;
+  })
+  .catch(function () {});
+
 export default class Edit_Sub_Service extends Component {
   constructor(props) {
     super(props);
@@ -27,10 +36,11 @@ export default class Edit_Sub_Service extends Component {
       open: false,
       service: "",
       subService: "",
+      subServiceName: "",
       serviceCount: 0,
       subServiceCount: 0,
       serviceList: [],
-      subServiceList: []
+      subServiceList: [],
     };
   }
 
@@ -39,22 +49,73 @@ export default class Edit_Sub_Service extends Component {
     this.return_data(0);
   };
 
+  handleImageChange(e) {
+    e.preventDefault();
+
+    let reader = new FileReader();
+    let file = e.target.files[0];
+
+    reader.onloadend = () => {
+      this.setState({
+        file: file,
+        imagePreviewUrl: reader.result,
+      });
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  upload_image = () => {
+    const uploadTask = storage
+      .child(`service/${this.state.subServiceName.trim()}.jpg`)
+      .put(this.state.file);
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        // progrss function ....
+        const progress = Math.round(
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+        );
+        this.setState({ progress });
+      },
+      (error) => {
+        // error function ....
+        console.log(error);
+      },
+      () => {
+        // complete function ....
+      }
+    );
+  };
+
   handleClose = () => {
     this.setState({ open: false });
-    this.return_data(0);
+    /* this.return_data(0);
     this.delete_sub_service();
-    this.populate_service_list();
+    this.populate_service_list(); */
+
+    db.child(this.state.service).once("value", (snapshot) => {
+      db.child(this.state.serviceName).set(snapshot.val());
+    });
+    alert(this.state.serviceCount);
+    ref
+      .child(this.state.serviceCount + 1)
+      .child("service")
+      .set(this.state.serviceName);
+    this.upload_image();
+
+    alert("Data successfully updated");
   };
 
   async populate_service_list() {
-    await ref.once("value", snapshot => {
-      snapshot.forEach(childSnapshot => {
+    await ref.once("value", (snapshot) => {
+      snapshot.forEach((childSnapshot) => {
         if (childSnapshot.child("service").val() === "Travel") {
         } else {
           this.setState({
             serviceList: this.state.serviceList.concat([
-              childSnapshot.child("service").val()
-            ])
+              childSnapshot.child("service").val(),
+            ]),
           });
         }
       });
@@ -65,39 +126,47 @@ export default class Edit_Sub_Service extends Component {
     await ref
       .child(e)
       .child("subService")
-      .once("value", snapshot => {
-        snapshot.forEach(childSnapshot => {
+      .once("value", (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
           this.setState({
             subServiceList: this.state.subServiceList.concat([
-              childSnapshot.child("name").val()
-            ])
+              childSnapshot.child("name").val(),
+            ]),
           });
         });
       });
   }
 
-  handleChange = service => event => {
+  handleChange = (service) => (event) => {
     this.setState({
       ...this.state,
       [service]: event.target.value,
       serviceCount: event.target.selectedIndex + 1,
-      subServiceList: []
+      subServiceList: [],
     });
     this.populate_sub_service_list(event.target.selectedIndex + 1);
   };
 
-  get_index = subService => event => {
+  get_index = (subService) => (event) => {
     this.setState({
       ...this.state,
       [subService]: event.target.value,
-      subServiceCount: event.target.selectedIndex
+      subServiceCount: event.target.selectedIndex,
     });
     mSubServiceCount = event.target.selectedIndex;
-    console.log(mSubServiceCount);
+    storageRef
+      .child("service")
+      .child("sub-service")
+      .child(`${this.state.service}/${event.target.value}.jpg`)
+      .getDownloadURL()
+      .then(function (url) {
+        test = url;
+      })
+      .catch(function () {});
   };
 
   async return_data(i) {
-    var dataSnapshotVal;
+    /*   var dataSnapshotVal;
     var ref2 = database
       .ref("ServiceList")
       .child(this.state.serviceCount)
@@ -108,20 +177,20 @@ export default class Edit_Sub_Service extends Component {
       dataSnapshotVal = await ref2.once("value");
       return dataSnapshotVal.val();
     } catch (error) {}
-    return dataSnapshotVal;
+    return dataSnapshotVal; */
   }
 
   delete_sub_service = () => {
-    ref
+    /*   ref
       .child(this.state.serviceCount)
       .child("subService")
       .child(this.state.subServiceCount)
       .remove();
-    this.adjust_database();
+    this.adjust_database(); */
   };
 
   async adjust_database() {
-    if (mSubServiceCount < this.state.subServiceList.length) {
+    /* if (mSubServiceCount < this.state.subServiceList.length) {
       var loopCount = this.state.subServiceList.length - mSubServiceCount;
       console.log(loopCount + " loopCount");
       for (var i = 0; i < loopCount; i++) {
@@ -141,8 +210,12 @@ export default class Edit_Sub_Service extends Component {
       .remove();
     setTimeout(() => {}, 3);
     window.location.reload();
-    alert("Sub-Service removed from database.");
+    alert("Sub-Service removed from database."); */
   }
+
+  updateInput = (event) => {
+    this.setState({ subServiceName: event.target.value });
+  };
 
   handleDelete = () => {
     this.handleClickOpen();
@@ -155,87 +228,189 @@ export default class Edit_Sub_Service extends Component {
   }
 
   render() {
-    return (
-      <div style={{ width: "100%" }}>
-        <NativeSelect
-          style={{
-            marginTop: 2,
-            width: "100%"
-          }}
-          value={this.state.service}
-          name="service"
-          onChange={this.handleChange("service")}
-          inputProps={{ "aria-label": "service" }}
-        >
-          <option value="" disabled>
-            Choose Service
-          </option>
-          {this.state.serviceList.map(x => (
-            <option value={x}>{x}</option>
-          ))}
-        </NativeSelect>
-        <FormHelperText>
-          Choose Service to delete (Please wait if you see the list empty as
-          data being loaded)
-        </FormHelperText>
+    let { imagePreviewUrl } = this.state;
+    let $imagePreview = null;
 
-        <NativeSelect
+    if (imagePreviewUrl) {
+      $imagePreview = (
+        <img
+          alt=""
+          src={imagePreviewUrl}
           style={{
-            marginTop: 35,
-            width: "100%"
+            height: 123,
+            width: 150,
+            textAlign: "center",
+            marginTop: 25,
           }}
-          value={this.state.subService}
-          name="subService"
-          onChange={this.get_index("subService")}
-          inputProps={{ "aria-label": "subService" }}
-        >
-          <option value="" disabled>
-            Choose Sub-Service
-          </option>
-          {this.state.subServiceList.map(x => (
-            <option value={x}>{x}</option>
-          ))}
-        </NativeSelect>
-        <FormHelperText>
-          Choose Sub-Service to delete (Please wait if you see the list empty as
-          data being loaded)
-        </FormHelperText>
-        <Button
-          variant="contained"
-          color="primary"
-          style={{
-            width: "100%",
-            marginTop: 45
-          }}
-          onClick={this.handleDelete}
-          startIcon={<Delete />}
-        >
-          Delete Sub-Service
-        </Button>
-        <Dialog
-          open={this.state.open}
-          onClose={this.handleClose}
-          aria-labelledby="alert-dialog-title"
-          aria-describedby="alert-dialog-description"
-        >
-          <DialogTitle style={{ color: "#f00" }} id="alert-dialog-title">
-            {"Warning! Are you sure?"}
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText id="alert-dialog-description">
-              Once you delete the sub-service, then its service providers will
-              also be permanently removed. This can not be undone.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={this.handleClose} color="primary">
-              Cancel
-            </Button>
-            <Button onClick={this.handleClose} color="secondary" autoFocus>
-              Proceed
-            </Button>
-          </DialogActions>
-        </Dialog>
+        />
+      );
+    } else {
+      $imagePreview = (
+        <div className="previewText">
+          Please select new Image for Preview (to snyc with new new name please
+          choose new image)
+        </div>
+      );
+    }
+
+    return (
+      <div className="container">
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <div style={{ width: "100%" }}>
+              <img
+                src={this.state.image == null ? test : this.state.image}
+                style={{
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "50%",
+                  borderRadius: "50%",
+                  width: 75,
+                  height: 70,
+                }}
+                alt="Avatar"
+              />
+              <NativeSelect
+                style={{
+                  marginTop: 2,
+                  width: "100%",
+                }}
+                value={this.state.service}
+                name="service"
+                onChange={this.handleChange("service")}
+                inputProps={{ "aria-label": "service" }}
+              >
+                <option value="" disabled>
+                  Choose Service
+                </option>
+                {this.state.serviceList.map((x) => (
+                  <option value={x}>{x}</option>
+                ))}
+              </NativeSelect>
+              <FormHelperText>
+                Choose Service to delete (Please wait if you see the list empty
+                as data being loaded)
+              </FormHelperText>
+
+              <NativeSelect
+                style={{
+                  marginTop: 35,
+                  width: "100%",
+                }}
+                value={this.state.subService}
+                name="subService"
+                onChange={this.get_index("subService")}
+                inputProps={{ "aria-label": "subService" }}
+              >
+                <option value="" disabled>
+                  Choose Sub-Service
+                </option>
+                {this.state.subServiceList.map((x) => (
+                  <option value={x}>{x}</option>
+                ))}
+              </NativeSelect>
+              <FormHelperText>
+                Choose Sub-Service to delete (Please wait if you see the list
+                empty as data being loaded)
+              </FormHelperText>
+
+              <TextField
+                id="outlined-full-width"
+                label="Change name to"
+                style={{ marginTop: 30, width: "100%" }}
+                placeholder=""
+                required
+                onChange={this.updateInput}
+                name="serviceName"
+                margin="normal"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                variant="outlined"
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                style={{
+                  width: "100%",
+                  marginTop: 45,
+                }}
+                onClick={this.handleDelete}
+                startIcon={<Delete />}
+              >
+                Save Changes
+              </Button>
+              <Dialog
+                open={this.state.open}
+                onClose={() => {
+                  this.setState({ open: false });
+                }}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+              >
+                <DialogTitle style={{ color: "#f00" }} id="alert-dialog-title">
+                  {"Warning! Are you sure?"}
+                </DialogTitle>
+                <DialogContent>
+                  <DialogContentText id="alert-dialog-description">
+                    You are about to change the name of selected sub-service.
+                    Please select image if you haven't.
+                  </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                  <Button
+                    onClick={() => {
+                      this.setState({ open: false });
+                    }}
+                    color="primary"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={this.handleClose}
+                    color="secondary"
+                    autoFocus
+                  >
+                    Proceed
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </div>
+          </Grid>
+          <Grid item xs={6}>
+            <input
+              className="fileInput"
+              type="file"
+              style={{
+                borderBottom: "4px solid lightgray",
+                borderRight: "4px solid lightgray",
+                borderTop: "1px solid black",
+                borderLeft: "1px solid black",
+                marginTop: 20,
+                padding: 10,
+                width: 420,
+                cursor: "pointer",
+              }}
+              onChange={(e) => this.handleImageChange(e)}
+            />
+            <div
+              className="imgPreview"
+              style={{
+                textAlign: "center",
+                margin: "5px 15px",
+                height: 123,
+                width: 150,
+                marginTop: 20,
+                marginLeft: 35,
+                borderLeft: "1px solid gray",
+                borderRight: "1px solid gray",
+                borderTop: "5px solid gray",
+                borderBottom: "5px solid gray",
+              }}
+            >
+              {$imagePreview}
+            </div>
+          </Grid>
+        </Grid>
       </div>
     );
   }

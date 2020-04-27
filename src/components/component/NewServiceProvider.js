@@ -1,14 +1,11 @@
 import React, { Component } from "react";
 import firebase from "firebase";
-import storage from "firebase";
-import clsx from "clsx";
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
 import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
 import ExpansionPanelActions from "@material-ui/core/ExpansionPanelActions";
 import Typography from "@material-ui/core/Typography";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import Chip from "@material-ui/core/Chip";
 import Button from "@material-ui/core/Button";
 import Divider from "@material-ui/core/Divider";
 
@@ -16,22 +13,21 @@ const data = [];
 const db = firebase.firestore();
 const database = firebase.database();
 var storageRef = firebase.storage().ref();
-var spaceRef = storageRef.child("ads_images/1.jpg");
-var path = spaceRef.fullPath;
 var test;
+
 storageRef
   .child("ads_images/1.jpg")
   .getDownloadURL()
-  .then(function(url) {
+  .then(function (url) {
     test = url;
   })
-  .catch(function(error) {});
+  .catch(function () {});
 
 export default class NewServiceProvider extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      totalCount: 0
+      totalCount: 0,
     };
     this.interval = setInterval(
       () => this.setState({ time: Date.now() }),
@@ -42,27 +38,27 @@ export default class NewServiceProvider extends Component {
     await db
       .collection("Users")
       .get()
-      .then(function(querySnapshot) {
-        querySnapshot.forEach(function(doc) {
+      .then(function (querySnapshot) {
+        querySnapshot.forEach(function (doc) {
           data.push(doc.data());
         });
       });
   }
 
-  deny_request = id => (event, expanded) => {
+  deny_request = (id) => () => {
     db.collection("Users")
       .doc(id)
       .delete()
-      .then(function() {
+      .then(function () {
         alert("Service Provider permission denied.");
         window.location.reload();
       })
-      .catch(function(error) {
+      .catch(function (error) {
         console.error("Error removing document: ", error);
       });
   };
 
-  allow_request = snapshot => (event, expanded) => {
+  allow_request = (snapshot) => () => {
     this.get_total_count(snapshot);
   };
 
@@ -73,7 +69,7 @@ export default class NewServiceProvider extends Component {
     console.log(
       `Service/${snapshot.sub}/${snapshot.state}/${snapshot.district}/`
     );
-    await ref2.once("value", ds => {
+    await ref2.once("value", (ds) => {
       this.setState({ totalCount: ds.numChildren() });
       this.upload_first(snapshot);
     });
@@ -104,16 +100,16 @@ export default class NewServiceProvider extends Component {
     db.collection("Users")
       .doc(snapshot.login)
       .delete()
-      .then(function() {
+      .then(function () {
         alert("Service Provider permission granted.");
         window.location.reload();
       })
-      .catch(function(error) {
+      .catch(function (error) {
         console.error("Error removing document: ", error);
       });
   }
 
-  get_sp_table = snapshot => {
+  get_sp_table = (snapshot) => {
     return (
       <ExpansionPanel>
         <ExpansionPanelSummary
@@ -148,7 +144,7 @@ export default class NewServiceProvider extends Component {
               backgroundPosition: "50%",
               borderRadius: "50%",
               width: 75,
-              height: 75
+              height: 75,
             }}
             alt="Avatar"
           />

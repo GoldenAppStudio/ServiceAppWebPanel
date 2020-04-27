@@ -20,36 +20,36 @@ const styles = StyleSheet.create({
     cursor: "pointer",
     position: "absolute",
     left: 24,
-    top: 34
+    top: 34,
   },
   container: {
     backgroundColor: "#363740",
     width: 255,
     paddingTop: 32,
-    height: "calc(100% - 32px)"
+    height: "calc(100% - 32px)",
   },
   containerMobile: {
     transition: "left 0.5s, right 0.5s",
     position: "absolute",
     width: 255,
     height: "calc(100% - 32px)",
-    zIndex: 901
+    zIndex: 901,
   },
   mainContainer: {
     height: "100%",
-    minHeight: "100vh"
+    minHeight: "100vh",
   },
   mainContainerMobile: {
     position: "absolute",
     top: 0,
-    left: 0
+    left: 0,
   },
   mainContainerExpanded: {
     width: "100%",
-    minWidth: "100vh"
+    minWidth: "100vh",
   },
   menuItemList: {
-    marginTop: 35
+    marginTop: 35,
   },
   outsideLayer: {
     position: "absolute",
@@ -57,20 +57,20 @@ const styles = StyleSheet.create({
     minWidth: "100%",
     height: "100%",
     backgroundColor: "rgba(0,0,0,.50)",
-    zIndex: 900
+    zIndex: 900,
   },
   separator: {
     borderTop: "1px solid #ABCDEF",
     marginTop: 12,
     marginBottom: 12,
-    opacity: 0.06
+    opacity: 0.06,
   },
   hide: {
-    left: -255
+    left: -255,
   },
   show: {
-    left: 0
-  }
+    left: 0,
+  },
 });
 
 function SidebarComponent({ onChange, selectedItem }) {
@@ -92,7 +92,7 @@ function SidebarComponent({ onChange, selectedItem }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [window.innerWidth]);
 
-  const onItemClicked = item => {
+  const onItemClicked = (item) => {
     setExpanded(false);
     return onChange(item);
   };
@@ -110,13 +110,13 @@ function SidebarComponent({ onChange, selectedItem }) {
   return (
     <div style={{ position: "relative" }}>
       <Row
-        componentRef={element => (input1.current = element)}
+        componentRef={(element) => (input1.current = element)}
         className={css(styles.mainContainer)}
         breakpoints={{
           768: css(
             styles.mainContainerMobile,
             expanded && styles.mainContainerExpanded
-          )
+          ),
         }}
       >
         {isMobile && !expanded && renderBurger()}
@@ -126,7 +126,7 @@ function SidebarComponent({ onChange, selectedItem }) {
             768: css(
               styles.containerMobile,
               expanded ? styles.show : styles.hide
-            )
+            ),
           }}
         >
           <LogoComponent />
@@ -157,6 +157,13 @@ function SidebarComponent({ onChange, selectedItem }) {
             />
 
             <MenuItemComponent
+              title="Delete Services"
+              icon={IconAgents}
+              onClick={() => onItemClicked("DEL")}
+              active={selectedItem === "DEL"}
+            />
+
+            <MenuItemComponent
               title="Service Provider"
               icon={IconBellNew}
               onClick={() => onItemClicked("SP")}
@@ -164,7 +171,7 @@ function SidebarComponent({ onChange, selectedItem }) {
             />
             <MenuItemComponent
               title="New Requests"
-              icon={NewReleasesIcon}
+              icon={IconAgents}
               onClick={() => onItemClicked("NSP")}
               active={selectedItem === "NSP"}
             />

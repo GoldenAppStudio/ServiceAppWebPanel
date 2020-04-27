@@ -9,20 +9,11 @@ import firebase from "firebase";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import InputLabel from "@material-ui/core/InputLabel";
-import Input from "@material-ui/core/Input";
-import MenuItem from "@material-ui/core/MenuItem";
-import FormControl from "@material-ui/core/FormControl";
-import Select from "@material-ui/core/Select";
-import CloudUploadIcon from "@material-ui/icons/CloudUpload";
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
 
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItem from "@material-ui/core/ListItem";
-import List from "@material-ui/core/List";
 import Divider from "@material-ui/core/Divider";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -42,7 +33,7 @@ const ref = database.ref("Service");
 var ssc;
 var stateList = [];
 for (var i = 0; i < 35; i++) {
-  var stateList = stateList.concat(state.states[i].state);
+  stateList = stateList.concat(state.states[i].state);
 }
 
 var mState, mDistrict, mService, mSubService;
@@ -54,7 +45,7 @@ export default class ServiceProvider extends Component {
     this.state = {
       open: false,
       count: 0,
-      start: false,
+      start: true,
       progress: 0,
       serviceX: "",
       subServiceX: "",
@@ -68,10 +59,10 @@ export default class ServiceProvider extends Component {
       email: "",
       address: "",
       priority: 0,
-      website: "",
+      price: "",
       serviceList: [],
       subServiceList: [],
-      data: []
+      data: [],
     };
     this.interval = setInterval(
       () => this.setState({ time: Date.now() }),
@@ -87,7 +78,6 @@ export default class ServiceProvider extends Component {
       .child(mDistrict)
       .once("value");
     this.setState({ data: dataSnapshot.val() });
-    console.log(this.state.data);
   }
 
   Transition = React.forwardRef(function Transition(props, ref) {
@@ -104,7 +94,7 @@ export default class ServiceProvider extends Component {
 
   move_next = () => {
     this.setState({
-      start: false
+      start: false,
     });
     this.get_sp();
   };
@@ -115,7 +105,7 @@ export default class ServiceProvider extends Component {
       .child(mSubService)
       .child(mState)
       .child(mDistrict)
-      .once("value", snapshot => {
+      .on("value", (snapshot) => {
         this.setState({ count: snapshot.numChildren() });
       });
   }
@@ -129,7 +119,7 @@ export default class ServiceProvider extends Component {
     reader.onloadend = () => {
       this.setState({
         file: file,
-        imagePreviewUrl: reader.result
+        imagePreviewUrl: reader.result,
       });
     };
 
@@ -138,19 +128,19 @@ export default class ServiceProvider extends Component {
 
   async populate_service_list() {
     var ref2 = database.ref("ServiceList");
-    await ref2.once("value", snapshot => {
-      snapshot.forEach(childSnapshot => {
+    await ref2.once("value", (snapshot) => {
+      snapshot.forEach((childSnapshot) => {
         if (childSnapshot.child("service").val() === "Travel") {
         } else {
           this.setState({
             serviceList: this.state.serviceList.concat([
-              childSnapshot.child("service").val()
-            ])
+              childSnapshot.child("service").val(),
+            ]),
           });
         }
       });
     });
-    console.log(this.state.serviceList);
+    // console.log(this.state.serviceList);
   }
 
   async populate_sub_service_list(e) {
@@ -158,18 +148,19 @@ export default class ServiceProvider extends Component {
     await ref3
       .child(e)
       .child("subService")
-      .once("value", snapshot => {
-        snapshot.forEach(childSnapshot => {
+      .once("value", (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
           this.setState({
             subServiceList: this.state.subServiceList.concat([
-              childSnapshot.child("name").val()
-            ])
+              childSnapshot.child("name").val(),
+            ]),
           });
         });
       });
   }
 
   handleClick = () => {
+    this.get_child_count();
     this.upload_image();
   };
 
@@ -178,32 +169,149 @@ export default class ServiceProvider extends Component {
   }
 
   upload_image = () => {
-    const uploadTask = storage
-      .child(`ads_images/${this.state.count + 1}.jpg`)
+    /*  const uploadTask = storage
+      .child(
+        `service-provider/
+      ${mService}${mSubService}
+      ${mState}${mDistrict}${this.state.count}.jpg`
+      )
       .put(this.state.file);
     uploadTask.on(
       "state_changed",
-      snapshot => {
+      (snapshot) => {
         // progrss function ....
         const progress = Math.round(
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100
         );
         this.setState({ progress });
       },
-      error => {
+      (error) => {
         // error function ....
         console.log(error);
       },
       () => {
         // complete function ....
         console.log("count: " + this.state.count);
-        this.upload_ad_data();
-        alert("Ad Published.");
+
+        //  alert("Ad Published.");
       }
-    );
+    ); */
+    this.upload_data();
   };
 
-  get_sp_table = snapshot => {
+  upload_data = () => {
+    ref
+      .child(mService)
+      .child(mSubService)
+      .child(mState)
+      .child(mDistrict)
+      .child(this.state.count + 1)
+      .child("name")
+      .set(this.state.name);
+
+    ref
+      .child(mService)
+      .child(mSubService)
+      .child(mState)
+      .child(mDistrict)
+      .child(this.state.count + 1)
+      .child("email")
+      .set(this.state.email);
+
+    ref
+      .child(mService)
+      .child(mSubService)
+      .child(mState)
+      .child(mDistrict)
+      .child(this.state.count + 1)
+      .child("address")
+      .set(this.state.address);
+
+    ref
+      .child(mService)
+      .child(mSubService)
+      .child(mState)
+      .child(mDistrict)
+      .child(this.state.count + 1)
+      .child("description")
+      .set(this.state.longDescription);
+
+    ref
+      .child(mService)
+      .child(mSubService)
+      .child(mState)
+      .child(mDistrict)
+      .child(this.state.count + 1)
+      .child("state")
+      .set(mState);
+
+    ref
+      .child(mService)
+      .child(mSubService)
+      .child(mState)
+      .child(mDistrict)
+      .child(this.state.count + 1)
+      .child("district")
+      .set(mDistrict);
+
+    ref
+      .child(mService)
+      .child(mSubService)
+      .child(mState)
+      .child(mDistrict)
+      .child(this.state.count + 1)
+      .child("service")
+      .set(mService);
+
+    ref
+      .child(mService)
+      .child(mSubService)
+      .child(mState)
+      .child(mDistrict)
+      .child(this.state.count + 1)
+      .child("sub")
+      .set(mSubService);
+
+    ref
+      .child(mService)
+      .child(mSubService)
+      .child(mState)
+      .child(mDistrict)
+      .child(this.state.count + 1)
+      .child("uid")
+      .set(`${this.state.count + 1}`);
+
+    ref
+      .child(mService)
+      .child(mSubService)
+      .child(mState)
+      .child(mDistrict)
+      .child(this.state.count + 1)
+      .child("priority")
+      .set(this.state.priority);
+
+    ref
+      .child(mService)
+      .child(mSubService)
+      .child(mState)
+      .child(mDistrict)
+      .child(this.state.count + 1)
+      .child("price")
+      .set(this.state.price);
+
+    ref
+      .child(mService)
+      .child(mSubService)
+      .child(mState)
+      .child(mDistrict)
+      .child(this.state.count + 1)
+      .child("phone")
+      .set(this.state.phone);
+
+    alert("Data added");
+  };
+
+  get_sp_table = (snapshot) => {
     return (
       <ExpansionPanel>
         <ExpansionPanelSummary
@@ -251,43 +359,42 @@ export default class ServiceProvider extends Component {
     );
   };
 
-  handleChange = service => event => {
+  handleChange = () => (event) => {
     this.setState({
       ...this.state,
       serviceX: event.target.value,
       serviceCount: event.target.selectedIndex + 1,
-      subServiceList: []
+      subServiceList: [],
     });
     mService = event.target.value;
     this.populate_sub_service_list(event.target.selectedIndex + 1);
   };
 
-  get_index = subService => event => {
+  get_index = () => (event) => {
     this.setState({
       ...this.state,
       subServiceX: event.target.value,
-      subServiceCount: event.target.selectedIndex
+      subServiceCount: event.target.selectedIndex,
     });
     ssc = event.target.selectedIndex;
     mSubService = event.target.value;
   };
 
-  get_district = stateX => event => {
+  get_district = () => (event) => {
     this.setState({
       ...this.state,
-      stateX: event.target.value
+      stateX: event.target.value,
     });
     mState = event.target.value;
     var abc = stateList.indexOf(event.target.value);
     distList = state.states[abc].districts;
   };
 
-  handleDistrict = districtX => event => {
+  handleDistrict = () => (event) => {
     this.setState({
-      districtX: event.target.value
+      districtX: event.target.value,
     });
     mDistrict = event.target.value;
-    console.log(mService);
     console.log(mSubService);
     console.log(mState);
     console.log(mDistrict);
@@ -302,7 +409,7 @@ export default class ServiceProvider extends Component {
       marginTop: 20,
       padding: 10,
       width: 375,
-      cursor: "pointer"
+      cursor: "pointer",
     };
 
     const imagePreviewStyle = {
@@ -315,7 +422,7 @@ export default class ServiceProvider extends Component {
       borderLeft: "1px solid gray",
       borderRight: "1px solid gray",
       borderTop: "5px solid gray",
-      borderBottom: "5px solid gray"
+      borderBottom: "5px solid gray",
     };
 
     let { imagePreviewUrl } = this.state;
@@ -324,12 +431,13 @@ export default class ServiceProvider extends Component {
     if (imagePreviewUrl) {
       $imagePreview = (
         <img
+          alt=""
           src={imagePreviewUrl}
           style={{
             height: 123,
             width: 150,
             textAlign: "center",
-            marginTop: 25
+            marginTop: 25,
           }}
         />
       );
@@ -384,7 +492,7 @@ export default class ServiceProvider extends Component {
         >
           <AppBar
             style={{
-              position: "relative"
+              position: "relative",
             }}
           >
             <Toolbar>
@@ -400,13 +508,13 @@ export default class ServiceProvider extends Component {
                 variant="h6"
                 style={{
                   marginLeft: 8,
-                  flex: 1
+                  flex: 1,
                 }}
               >
-                Serve new In-App Ad
+                Add New Service Provider
               </Typography>
               <Button autoFocus color="inherit" onClick={this.handleClick}>
-                Serve
+                Add
               </Button>
             </Toolbar>
           </AppBar>
@@ -423,21 +531,21 @@ export default class ServiceProvider extends Component {
                   className="fileInput"
                   type="file"
                   style={fileInputStyle}
-                  onChange={e => this.handleImageChange(e)}
+                  onChange={(e) => this.handleImageChange(e)}
                 />
                 <TextField
                   id="outlined-full-width"
                   label="Name"
                   style={{ marginTop: 23, width: 400 }}
-                  placeholder="Name"
+                  placeholder=""
                   required
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ name: e.target.value });
                   }}
                   name="name"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
@@ -445,15 +553,15 @@ export default class ServiceProvider extends Component {
                   id="outlined-full-width"
                   label="Email"
                   style={{ marginTop: 23, width: 400 }}
-                  placeholder="Email"
+                  placeholder=""
                   required
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ email: e.target.value });
                   }}
                   name="email"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
@@ -461,31 +569,31 @@ export default class ServiceProvider extends Component {
                   id="outlined-full-width"
                   label="Phone"
                   style={{ marginTop: 23, width: 400 }}
-                  placeholder="Phone"
+                  placeholder=""
                   required
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ phone: e.target.value });
                   }}
                   name="phone"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
                 <TextField
                   id="outlined-full-width"
-                  label="Website"
+                  label="Price"
                   style={{ marginTop: 23, width: 400 }}
-                  placeholder="Website"
+                  placeholder=""
                   required
-                  onChange={e => {
-                    this.setState({ website: e.target.value });
+                  onChange={(e) => {
+                    this.setState({ price: e.target.value });
                   }}
-                  name="website"
+                  name="price"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
@@ -495,13 +603,13 @@ export default class ServiceProvider extends Component {
                   style={{ marginTop: 23, width: 400 }}
                   placeholder="Address"
                   required
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ address: e.target.value });
                   }}
                   name="address"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
@@ -510,35 +618,20 @@ export default class ServiceProvider extends Component {
                 <div className="imgPreview" style={imagePreviewStyle}>
                   {$imagePreview}
                 </div>
+
                 <TextField
                   id="outlined-full-width"
-                  label="Short Description"
+                  label="Description"
                   style={{ marginTop: 23, width: "100%" }}
-                  placeholder="Short Description"
+                  placeholder=""
                   required
-                  onChange={e => {
-                    this.setState({ shortDescription: e.target.value });
-                  }}
-                  name="shortDescription"
-                  margin="normal"
-                  InputLabelProps={{
-                    shrink: true
-                  }}
-                  variant="outlined"
-                />
-                <TextField
-                  id="outlined-full-width"
-                  label="Long Description"
-                  style={{ marginTop: 23, width: "100%" }}
-                  placeholder="Long Description"
-                  required
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ longDescription: e.target.value });
                   }}
                   name="longDescription"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
@@ -548,13 +641,13 @@ export default class ServiceProvider extends Component {
                   style={{ marginTop: 23, width: "100%" }}
                   placeholder="Priority"
                   required
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ priority: e.target.value });
                   }}
                   name="priority"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
@@ -573,13 +666,13 @@ export default class ServiceProvider extends Component {
             <form
               style={{
                 display: "flex",
-                flexWrap: "wrap"
+                flexWrap: "wrap",
               }}
             >
               <NativeSelect
                 style={{
                   marginTop: 2,
-                  width: "100%"
+                  width: "100%",
                 }}
                 value={this.state.serviceX}
                 name="service"
@@ -589,7 +682,7 @@ export default class ServiceProvider extends Component {
                 <option value="" placeholder>
                   Choose Service
                 </option>
-                {this.state.serviceList.map(x => (
+                {this.state.serviceList.map((x) => (
                   <option value={x}>{x}</option>
                 ))}
               </NativeSelect>
@@ -601,7 +694,7 @@ export default class ServiceProvider extends Component {
               <NativeSelect
                 style={{
                   marginTop: 35,
-                  width: "100%"
+                  width: "100%",
                 }}
                 value={this.state.subServiceX}
                 name="subService"
@@ -611,7 +704,7 @@ export default class ServiceProvider extends Component {
                 <option value="Choose Sub-Service" placeholder>
                   Choose Sub-Service
                 </option>
-                {this.state.subServiceList.map(x => (
+                {this.state.subServiceList.map((x) => (
                   <option value={x}>{x}</option>
                 ))}
               </NativeSelect>
@@ -622,7 +715,7 @@ export default class ServiceProvider extends Component {
               <NativeSelect
                 style={{
                   marginTop: 35,
-                  width: "100%"
+                  width: "100%",
                 }}
                 value={this.state.stateX}
                 name="state"
@@ -632,7 +725,7 @@ export default class ServiceProvider extends Component {
                 <option value="Choose State" placeholder>
                   Choose State
                 </option>
-                {stateList.map(x => (
+                {stateList.map((x) => (
                   <option value={x}>{x}</option>
                 ))}
               </NativeSelect>
@@ -643,7 +736,7 @@ export default class ServiceProvider extends Component {
               <NativeSelect
                 style={{
                   marginTop: 35,
-                  width: "100%"
+                  width: "100%",
                 }}
                 value={this.state.districtX}
                 name="district"
@@ -653,7 +746,7 @@ export default class ServiceProvider extends Component {
                 <option value="Choose District" placeholder>
                   Choose District
                 </option>
-                {distList.map(x => (
+                {distList.map((x) => (
                   <option value={x}>{x}</option>
                 ))}
               </NativeSelect>

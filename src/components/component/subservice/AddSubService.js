@@ -1,8 +1,6 @@
 import React, { Component } from "react";
-import InputLabel from "@material-ui/core/InputLabel";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import FormControl from "@material-ui/core/FormControl";
-import Select from "@material-ui/core/Select";
 import NativeSelect from "@material-ui/core/NativeSelect";
 import { storage } from "../../../Firebase";
 import firebase from "firebase";
@@ -29,11 +27,11 @@ export default class AddSubService extends Component {
       labelWidth: 0,
       service: "",
       serviceCount: 2,
-      serviceList: []
+      serviceList: [],
     };
   }
 
-  updateInput = event => {
+  updateInput = (event) => {
     this.setState({ subServiceName: event.target.value });
   };
 
@@ -46,7 +44,7 @@ export default class AddSubService extends Component {
     reader.onloadend = () => {
       this.setState({
         file: file,
-        imagePreviewUrl: reader.result
+        imagePreviewUrl: reader.result,
       });
     };
 
@@ -54,14 +52,14 @@ export default class AddSubService extends Component {
   }
 
   populate_service_list = () => {
-    ref.once("value", snapshot => {
-      snapshot.forEach(childSnapshot => {
+    ref.once("value", (snapshot) => {
+      snapshot.forEach((childSnapshot) => {
         if (childSnapshot.child("service").val() === "Travel") {
         } else {
           this.setState({
             serviceList: this.state.serviceList.concat([
-              childSnapshot.child("service").val()
-            ])
+              childSnapshot.child("service").val(),
+            ]),
           });
         }
       });
@@ -72,7 +70,7 @@ export default class AddSubService extends Component {
     const ref2 = database.ref(
       `ServiceList/${this.state.serviceCount}/subService`
     );
-    ref2.once("value", snapshot => {
+    ref2.once("value", (snapshot) => {
       this.setState({ count: snapshot.numChildren() });
     });
   };
@@ -102,14 +100,14 @@ export default class AddSubService extends Component {
       .put(this.state.file);
     uploadTask.on(
       "state_changed",
-      snapshot => {
+      (snapshot) => {
         // progrss function ....
         const progress = Math.round(
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100
         );
         this.setState({ progress });
       },
-      error => {
+      (error) => {
         // error function ....
         console.log(error);
       },
@@ -126,15 +124,15 @@ export default class AddSubService extends Component {
     this.get_child_count();
     this.upload_image();
     this.setState({
-      count: 0
+      count: 0,
     });
   };
 
-  handleChange = service => event => {
+  handleChange = (service) => (event) => {
     this.setState({
       ...this.state,
       [service]: event.target.value,
-      serviceCount: event.target.selectedIndex + 2
+      serviceCount: event.target.selectedIndex + 2,
     });
   };
 
@@ -151,7 +149,7 @@ export default class AddSubService extends Component {
       marginTop: 20,
       padding: 10,
       width: 440,
-      cursor: "pointer"
+      cursor: "pointer",
     };
 
     const imagePreviewStyle = {
@@ -164,7 +162,7 @@ export default class AddSubService extends Component {
       borderLeft: "1px solid gray",
       borderRight: "1px solid gray",
       borderTop: "5px solid gray",
-      borderBottom: "5px solid gray"
+      borderBottom: "5px solid gray",
     };
 
     let { imagePreviewUrl } = this.state;
@@ -173,12 +171,13 @@ export default class AddSubService extends Component {
     if (imagePreviewUrl) {
       $imagePreview = (
         <img
+          alt={"this"}
           src={imagePreviewUrl}
           style={{
             height: 123,
             width: 150,
             textAlign: "center",
-            marginTop: 25
+            marginTop: 25,
           }}
         />
       );
@@ -203,19 +202,19 @@ export default class AddSubService extends Component {
                   style={{
                     margin: 1,
                     marginTop: 15,
-                    minWidth: "100%"
+                    minWidth: "100%",
                   }}
                 >
                   <NativeSelect
                     style={{
-                      marginTop: 2
+                      marginTop: 2,
                     }}
                     value={this.state.service}
                     name="service"
                     onChange={this.handleChange("service")}
                     inputProps={{ "aria-label": "service" }}
                   >
-                    {this.state.serviceList.map(x => (
+                    {this.state.serviceList.map((x) => (
                       <option value={x}>{x}</option>
                     ))}
                   </NativeSelect>
@@ -228,7 +227,7 @@ export default class AddSubService extends Component {
                   className="fileInput"
                   type="file"
                   style={fileInputStyle}
-                  onChange={e => this.handleImageChange(e)}
+                  onChange={(e) => this.handleImageChange(e)}
                 />
                 <TextField
                   id="outlined-full-width"
@@ -240,7 +239,7 @@ export default class AddSubService extends Component {
                   name="subServiceName"
                   margin="normal"
                   InputLabelProps={{
-                    shrink: true
+                    shrink: true,
                   }}
                   variant="outlined"
                 />
@@ -249,7 +248,7 @@ export default class AddSubService extends Component {
                   color="primary"
                   style={{
                     width: "100%",
-                    marginTop: 35
+                    marginTop: 35,
                   }}
                   onClick={this.handleUpload}
                   startIcon={<CloudUploadIcon />}

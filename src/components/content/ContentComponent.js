@@ -3,8 +3,6 @@ import { Column, Row } from "simple-flexbox";
 import { StyleSheet, css } from "aphrodite/no-important";
 import MiniCardComponent from "./MiniCardComponent";
 import TodayTrendsComponent from "./TodayTrendsComponent";
-import UnresolvedTicketsComponent from "./UnresolvedTicketsComponent";
-import TasksComponent from "./TasksComponent";
 import firebase from "../../Firebase";
 
 const database = firebase.database();
@@ -14,40 +12,40 @@ const db = firebase.firestore();
 const styles = StyleSheet.create({
   cardsContainer: {
     marginRight: -30,
-    marginTop: -30
+    marginTop: -30,
   },
   cardRow: {
     marginTop: 30,
     "@media (max-width: 768px)": {
-      marginTop: 0
-    }
+      marginTop: 0,
+    },
   },
   miniCardContainer: {
     flexGrow: 1,
     marginRight: 30,
     "@media (max-width: 768px)": {
       marginTop: 30,
-      maxWidth: "none"
-    }
+      maxWidth: "none",
+    },
   },
   todayTrends: {
-    marginTop: 30
+    marginTop: 30,
   },
   lastRow: {
-    marginTop: 30
+    marginTop: 30,
   },
   unresolvedTickets: {
     marginRight: 30,
     "@media (max-width: 1024px)": {
-      marginRight: 0
-    }
+      marginRight: 0,
+    },
   },
   tasks: {
     marginTop: 0,
     "@media (max-width: 1024px)": {
-      marginTop: 30
-    }
-  }
+      marginTop: 30,
+    },
+  },
 });
 
 var totalCountOfService;
@@ -64,19 +62,19 @@ class ContentComponent extends React.Component {
     );
   }
 
-  updateInput = event => {
+  updateInput = (event) => {
     this.setState({ serviceName: event.target.value });
   };
 
   async get_ads_count() {
     var ref = database.ref("ShowAd");
-    await ref.once("value", snapshot => {
+    await ref.once("value", (snapshot) => {
       totalCountOfAds = snapshot.numChildren();
     });
   }
 
   async get_service_count() {
-    await ref.once("value", snapshot => {
+    await ref.once("value", (snapshot) => {
       totalCountOfService = snapshot.numChildren();
     });
   }
@@ -85,11 +83,9 @@ class ContentComponent extends React.Component {
     await db
       .collection("Users")
       .get()
-      .then(snap => {
+      .then((snap) => {
         countOfServiceProviderRequests = snap.size;
       });
-
-    console.log(countOfServiceProviderRequests + "count");
   }
 
   componentDidMount() {
@@ -157,15 +153,11 @@ class ContentComponent extends React.Component {
           <TodayTrendsComponent />
         </div>
         <Row
+          children={""}
           horizontal="space-between"
           className={css(styles.lastRow)}
           breakpoints={{ 1024: "column" }}
-        >
-          <UnresolvedTicketsComponent
-            containerStyles={styles.unresolvedTickets}
-          />
-          <TasksComponent containerStyles={styles.tasks} />
-        </Row>
+        ></Row>
       </Column>
     );
   }

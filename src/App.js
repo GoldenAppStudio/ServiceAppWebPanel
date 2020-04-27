@@ -2,7 +2,6 @@ import React from "react";
 import { Column, Row } from "simple-flexbox";
 import { StyleSheet, css } from "aphrodite";
 import SidebarComponent from "./components/sidebar/SidebarComponent";
-import HeaderComponent from "./components/header/HeaderComponent";
 import ContentComponent from "./components/content/ContentComponent";
 import "./App.css";
 import AddService from "./components/component/AddService";
@@ -11,17 +10,18 @@ import Travel from "./components/component/Travel";
 import NewServiceProvider from "./components/component/NewServiceProvider";
 import AdsManagement from "./components/component/AdsManagement";
 import ServiceProvider from "./components/component/ServiceProvider";
+import DeleteTheService from "./components/component/DeleteTheService";
 
 const styles = StyleSheet.create({
   container: {
     height: "100%",
-    minHeight: "100vh"
+    minHeight: "100vh",
   },
 
   mainBlock: {
     backgroundColor: "#F7F8FC",
-    padding: 20
-  }
+    padding: 20,
+  },
 });
 
 class App extends React.Component {
@@ -45,6 +45,8 @@ class App extends React.Component {
         return <ContentComponent />;
       case "Edit":
         return <EditService />;
+      case "DEL":
+        return <DeleteTheService />;
       case "NSP":
         return <NewServiceProvider />;
       case "Ad":
@@ -65,7 +67,7 @@ class App extends React.Component {
       <Row className={css(styles.container)}>
         <SidebarComponent
           selectedItem={selectedItem}
-          onChange={selectedItem => this.setState({ selectedItem })}
+          onChange={(selectedItem) => this.setState({ selectedItem })}
         />
         <Column flexGrow={1} className={css(styles.mainBlock)}>
           <div className={css(styles.content)}>
