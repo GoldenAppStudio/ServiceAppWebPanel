@@ -56,8 +56,9 @@ const useStyles = makeStyles((theme) => ({
     marginRight: "22%",
   },
   container: {
-    display: "flex",
-    flexWrap: "wrap",
+    /* display: "flex",
+    flexWrap: "wrap", */
+    width: "100%",
     backgroundColor: theme.palette.background.paper,
   },
 
@@ -130,11 +131,9 @@ export default function DeleteTheService() {
         onChangeIndex={handleChangeIndex}
       >
         <TabPanel value={value} index={0} dir={theme.direction}>
-          <h1>Delete Service.</h1>
           <DeleteService />
         </TabPanel>
         <TabPanel value={value} index={1} dir={theme.direction}>
-          <h1>Delete Sub-Service</h1>
           <DeleteSubService />
         </TabPanel>
       </SwipeableViews>

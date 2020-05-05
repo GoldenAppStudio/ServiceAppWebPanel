@@ -1,3 +1,4 @@
 import React from "react";
+import PeopleIcon from "@material-ui/icons/People";
 
-export default props => <i className="material-icons">group</i>;
+export default (props) => <PeopleIcon style={{ color: "#ccc" }} />;

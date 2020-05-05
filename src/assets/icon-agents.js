@@ -1,3 +1,4 @@
 import React from "react";
+import EditIcon from "@material-ui/icons/Edit";
 
-export default props => <i className="material-icons">edit</i>;
+export default (props) => <EditIcon style={{ color: "#ccc" }} />;

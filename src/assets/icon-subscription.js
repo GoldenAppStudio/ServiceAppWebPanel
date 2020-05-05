@@ -1,3 +1,4 @@
 import React from "react";
+import CodeIcon from "@material-ui/icons/Code";
 
-export default props => <i className="material-icons">desktop_mac</i>;
+export default (props) => <CodeIcon style={{ color: "#ccc" }} />;

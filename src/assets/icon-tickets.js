@@ -1,3 +1,4 @@
 import React from "react";
+import RemoveRedEyeIcon from "@material-ui/icons/RemoveRedEye";
 
-export default props => <i className="material-icons">remove_red_eye</i>;
+export default (props) => <RemoveRedEyeIcon style={{ color: "#ccc" }} />;

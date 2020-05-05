@@ -1,3 +1,4 @@
 import React from "react";
+import EqualizerIcon from "@material-ui/icons/Equalizer";
 
-export default props => <i className="material-icons">insert_chart</i>;
+export default (props) => <EqualizerIcon style={{ color: "#ccc" }} />;

@@ -1,3 +1,4 @@
 import React from "react";
+import AddIcon from "@material-ui/icons/Add";
 
-export default props => <i className="material-icons">add_box</i>;
+export default (props) => <AddIcon style={{ color: "#ccc" }} />;

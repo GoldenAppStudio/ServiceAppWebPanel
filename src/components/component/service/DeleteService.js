@@ -10,130 +10,91 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Alert from "@material-ui/lab/Alert";
 
 const database = firebase.database();
-const ref = database.ref("ServiceList");
-var mServiceCount;
+const ref = database.ref("service_list");
+var UID;
+
 export default class DeleteService extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      image: null,
-      file: "",
-      imagePreviewUrl: "",
-      url: "",
       open: false,
-      progress: 0,
-      subServiceName: "",
-      count: null,
-      isCountAvailable: false,
-      labelWidth: 0,
       service: "",
-      dataSnapshot: null,
-      serviceCount: 0,
-      serviceList: [],
+      serviceList: ["Choose Service"],
+      success: false,
+      warning: false,
+      error: false,
+      loading: false,
     };
   }
-
-  handleClickOpen = () => {
-    this.setState({ open: true });
-    this.return_data(0);
-  };
-
-  handleClose = () => {
-    this.setState({ open: false });
-    this.return_data(0);
-    this.delete_service();
-    this.adjust_database();
-    /* this.populate_service_list();
-        this.get_child_count(); */
-  };
 
   async populate_service_list() {
     await ref.once("value", (snapshot) => {
       snapshot.forEach((childSnapshot) => {
         this.setState({
-          serviceList: this.state.serviceList.concat([
-            childSnapshot.child("service").val(),
-          ]),
+          serviceList: this.state.serviceList.concat(
+            childSnapshot.child("service_name").val()
+          ),
         });
       });
     });
-  }
-
-  async get_child_count() {
-    var childCount;
-    await ref.once("value", (snapshot) => {
-      this.setState({ count: snapshot.numChildren() });
-      childCount = snapshot.numChildren();
-    });
-    return childCount;
   }
 
   handleChange = (service) => (event) => {
     this.setState({
       ...this.state,
       [service]: event.target.value,
-      serviceCount: event.target.selectedIndex,
     });
-    mServiceCount = event.target.selectedIndex + 1;
-    console.log(mServiceCount);
   };
 
-  async return_data(i) {
-    var dataSnapshotVal;
-    var ref2 = database.ref("ServiceList").child(`${mServiceCount + 1 + i}`);
-    try {
-      dataSnapshotVal = await ref2.once("value");
-      return dataSnapshotVal.val();
-    } catch (error) {}
-    return dataSnapshotVal;
-  }
-
-  delete_service = () => {
-    console.log(mServiceCount);
-
-    ref.child(`${mServiceCount}`).remove();
-  };
-
-  async adjust_database() {
-    if (mServiceCount < this.state.count) {
-      var loopCount = this.state.count - mServiceCount;
-      console.log(loopCount + " loopCount");
-      console.log(this.state.count + " count");
-      for (var i = 0; i < loopCount; i++) {
-        var newData = await this.return_data(i);
-        setTimeout(() => {}, 6);
-        ref.child(`${mServiceCount + i}`).set(newData);
-      }
+  async get_service_uid() {
+    if (this.state.service === "Choose Service" || this.state.service === "") {
+      this.setState({ warning: true, loading: false });
+    } else {
+      await ref.once("value", (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          if (
+            childSnapshot.child("service_name").val() === this.state.service
+          ) {
+            var deleteRef = database
+              .ref("service_list")
+              .child(childSnapshot.child("UID").val());
+            deleteRef.remove(() => {
+              this.setState({
+                success: true,
+                loading: false,
+                serviceList: ["Choose Service"],
+              });
+              this.populate_service_list();
+            });
+          }
+        });
+      });
     }
-    ref.child(`${this.state.count}`).remove();
-
-    setTimeout(() => {}, 3);
-    window.location.reload();
-    alert("Service removed from database.");
   }
-
-  handleDelete = () => {
-    this.handleClickOpen();
-    this.setState({ serviceList: [] });
-    this.populate_service_list();
-    this.get_child_count();
-  };
 
   componentDidMount() {
     this.populate_service_list();
-    this.get_child_count();
   }
 
   render() {
     return (
       <div className="container">
-        <div style={{ width: "100%" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <h1>Delete Service.</h1>
           <NativeSelect
             style={{
               marginTop: 2,
-              width: "100%",
+              width: 480,
             }}
             value={this.state.service}
             name="service"
@@ -144,21 +105,48 @@ export default class DeleteService extends Component {
               <option value={x}>{x}</option>
             ))}
           </NativeSelect>
-          <FormHelperText>
+          <FormHelperText style={{ marginBottom: 25 }}>
             Choose Service to delete (Please wait if you see the list empty as
             data being loaded)
           </FormHelperText>
+
+          {this.state.success ? (
+            <Alert variant="outlined" severity="success" style={{ width: 450 }}>
+              Service is successfully deleted from the database!
+            </Alert>
+          ) : (
+            ""
+          )}
+
+          {this.state.error ? (
+            <Alert variant="outlined" severity="error" style={{ width: 450 }}>
+              Unexpected error occured. Please try later!
+            </Alert>
+          ) : (
+            ""
+          )}
+
+          {this.state.warning ? (
+            <Alert variant="outlined" severity="warning" style={{ width: 450 }}>
+              Please choose service to delete!
+            </Alert>
+          ) : (
+            ""
+          )}
           <Button
             variant="contained"
             color="primary"
             style={{
-              width: "100%",
               marginTop: 35,
+              width: 480,
             }}
-            onClick={this.handleDelete}
+            disabled={this.state.loading}
+            onClick={() => {
+              this.setState({ open: true });
+            }}
             startIcon={<Delete />}
           >
-            Delete Service
+            {!this.state.loading ? "Add Service" : <CircularProgress />}
           </Button>
           <Dialog
             open={this.state.open}
@@ -185,7 +173,18 @@ export default class DeleteService extends Component {
               >
                 Cancel
               </Button>
-              <Button onClick={this.handleClose} color="secondary" autoFocus>
+              <Button
+                color="secondary"
+                onClick={() => {
+                  this.setState({
+                    open: false,
+                    warning: false,
+                    success: false,
+                    loading: true,
+                  });
+                  this.get_service_uid();
+                }}
+              >
                 Proceed
               </Button>
             </DialogActions>

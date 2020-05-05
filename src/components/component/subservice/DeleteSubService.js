@@ -150,11 +150,18 @@ export default class DeleteSubService extends Component {
 
   render() {
     return (
-      <div style={{ width: "100%" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <h1>Delete Sub-Service</h1>
         <NativeSelect
           style={{
             marginTop: 2,
-            width: "100%",
+            width: 480,
           }}
           value={this.state.service}
           name="service"
@@ -176,7 +183,7 @@ export default class DeleteSubService extends Component {
         <NativeSelect
           style={{
             marginTop: 35,
-            width: "100%",
+            width: 480,
           }}
           value={this.state.subService}
           name="subService"
@@ -191,14 +198,14 @@ export default class DeleteSubService extends Component {
           ))}
         </NativeSelect>
         <FormHelperText>
-          Choose Sub-Service to delete (Please wait if you see the list empty as
-          data being loaded)
+          Choose SubService to delete (Wait if you see the list empty because
+          data is loading)
         </FormHelperText>
         <Button
           variant="contained"
           color="primary"
           style={{
-            width: "100%",
+            width: 480,
             marginTop: 45,
           }}
           onClick={this.handleDelete}

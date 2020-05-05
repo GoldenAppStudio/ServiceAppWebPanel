@@ -1,204 +1,167 @@
-import React, { Component } from "react";
-import { storage } from "../../../Firebase";
-import firebase from "firebase";
-
+import React from "react";
 import Button from "@material-ui/core/Button";
-import CloudUploadIcon from "@material-ui/icons/CloudUpload";
+import CssBaseline from "@material-ui/core/CssBaseline";
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
+import { makeStyles } from "@material-ui/core/styles";
+import Container from "@material-ui/core/Container";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Alert from "@material-ui/lab/Alert";
+import { storage } from "../../../Firebase";
+import firebase from "firebase";
+import ImageUploader from "react-images-upload";
+import Add from "@material-ui/icons/AddBoxRounded";
 
 const database = firebase.database();
-const ref = database.ref("ServiceList");
+const ref = database.ref("service_list");
 
-class FileUpload extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      image: null,
-      file: "",
-      imagePreviewUrl: "",
-      url: "",
-      progress: 0,
-      serviceName: "",
-      count: 0,
-      isCountAvailable: false,
-    };
-  }
+const useStyles = makeStyles((theme) => ({
+  paper: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  form: {
+    width: "100%", // Fix IE 11 issue.
+    marginTop: theme.spacing(1),
+  },
+  submit: {
+    margin: theme.spacing(3, 0, 2),
+  },
+}));
 
-  updateInput = (event) => {
-    this.setState({ serviceName: event.target.value });
-  };
+export default function FileUpload() {
+  const classes = useStyles();
+  const [loading, setLoading] = React.useState(false);
+  const [serviceName, setServiceName] = React.useState("");
+  const [successAlert, setSuccessAlert] = React.useState(false);
+  const [errorAlert, setErrorAlert] = React.useState(false);
+  const [warningAlert, setWarningAlert] = React.useState(false);
+  const [image, setImage] = React.useState("");
 
-  handleImageChange(e) {
-    e.preventDefault();
-
-    let reader = new FileReader();
-    let file = e.target.files[0];
-
-    reader.onloadend = () => {
-      this.setState({
-        file: file,
-        imagePreviewUrl: reader.result,
-      });
-    };
-
-    reader.readAsDataURL(file);
-  }
-
-  get_child_count = () => {
-    ref.once("value", (snapshot) => {
-      this.setState({ count: snapshot.numChildren() });
-    });
-  };
-
-  add_service = () => {
-    if (this.state.count === 0) {
-      setTimeout(() => {}, 2);
-      alert("Connection timeout! Please try again");
+  const handleButtonClick = () => {
+    if (image === "" || serviceName === "") {
+      setWarningAlert(true);
     } else {
-      ref
-        .child(this.state.count + 1)
-        .child("service")
-        .set(this.state.serviceName);
+      setLoading(true);
+      setWarningAlert(false);
+      // upload image and service data
+      uploadData();
     }
   };
 
-  upload_image = () => {
-    const uploadTask = storage
-      .child(`service/${this.state.serviceName.trim()}.jpg`)
-      .put(this.state.file);
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        // progrss function ....
-        const progress = Math.round(
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-        );
-        this.setState({ progress });
-      },
-      (error) => {
-        // error function ....
-        console.log(error);
+  const uploadData = () => {
+    var pushRef = ref.push();
+    pushRef.set(
+      {
+        service_name: serviceName.trim(),
+        UID: pushRef.key.toString().trim(),
       },
       () => {
-        // complete function ....
-        console.log("count: " + this.state.count);
-        this.add_service();
-        alert("Service Added");
+        const uploadTask = storage
+          .child(`service_images/${pushRef.key.toString()}.jpg`)
+          .put(image);
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {},
+          (error) => {
+            // error function ....
+            setErrorAlert(true);
+            setLoading(false);
+            console.log(error);
+          },
+          () => {
+            // complete function ....
+            setImage("");
+            setServiceName("");
+            setLoading(false);
+            setSuccessAlert(true);
+          }
+        );
       }
     );
   };
 
-  handleUpload = () => {
-    this.get_child_count();
-    this.upload_image();
-    this.setState({
-      count: 0,
-    });
+  const onDrop = (picture) => {
+    setSuccessAlert(false);
+    setWarningAlert(false);
+    setErrorAlert(false);
+    setImage(picture[0]);
   };
 
-  render() {
-    const fileInputStyle = {
-      borderBottom: "4px solid lightgray",
-      borderRight: "4px solid lightgray",
-      borderTop: "1px solid black",
-      borderLeft: "1px solid black",
-      marginTop: 20,
-      padding: 10,
-      width: 420,
-      cursor: "pointer",
-    };
-
-    const imagePreviewStyle = {
-      textAlign: "center",
-      margin: "5px 15px",
-      height: 123,
-      width: 150,
-      marginTop: 20,
-      marginLeft: 35,
-      borderLeft: "1px solid gray",
-      borderRight: "1px solid gray",
-      borderTop: "5px solid gray",
-      borderBottom: "5px solid gray",
-    };
-
-    let { imagePreviewUrl } = this.state;
-    let $imagePreview = null;
-
-    if (imagePreviewUrl) {
-      $imagePreview = (
-        <img
-          alt=""
-          src={imagePreviewUrl}
-          style={{
-            height: 123,
-            width: 150,
-            textAlign: "center",
-            marginTop: 25,
-          }}
+  return (
+    <Container component="main" maxWidth="xs">
+      <CssBaseline />
+      <div className={classes.paper}>
+        <h3>Add Service</h3>
+        <ImageUploader
+          fileContainerStyle={{ backgroundColor: "#ddd" }}
+          withIcon={true}
+          buttonStyles={{ backgroundColor: "#c55" }}
+          withPreview
+          singleImage={true}
+          buttonText="Choose image"
+          onChange={onDrop}
+          imgExtension={[".jpg", ".gif", ".png", ".gif"]}
+          maxFileSize={5242880}
         />
-      );
-    } else {
-      $imagePreview = (
-        <div className="previewText">Please select an Image for Preview</div>
-      );
-    }
-
-    return (
-      <div style={{}}>
-        <form>
-          <progress
-            value={this.state.progress}
-            max="100"
-            style={{ width: "100%" }}
+        <form className={classes.form} noValidate>
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
+            id="email"
+            label="Service Name"
+            name="email"
+            autoComplete="email"
+            autoFocus
+            style={{ marginBottom: 20 }}
+            onChange={(e) => {
+              setSuccessAlert(false);
+              setWarningAlert(false);
+              setErrorAlert(false);
+              setServiceName(e.target.value);
+            }}
           />
-          <div style={{ flexGrow: 1 }}>
-            <Grid container spacing={3}>
-              <Grid item xs={6}>
-                <input
-                  className="fileInput"
-                  type="file"
-                  style={fileInputStyle}
-                  onChange={(e) => this.handleImageChange(e)}
-                />
-                <TextField
-                  id="outlined-full-width"
-                  label="Name of service"
-                  style={{ marginTop: 30, width: "100%" }}
-                  placeholder="Name of service"
-                  required
-                  onChange={this.updateInput}
-                  name="serviceName"
-                  margin="normal"
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  variant="outlined"
-                />
-                <Button
-                  variant="contained"
-                  color="primary"
-                  style={{
-                    width: "100%",
-                    marginTop: 35,
-                  }}
-                  onClick={this.handleUpload}
-                  startIcon={<CloudUploadIcon />}
-                >
-                  Add Service
-                </Button>{" "}
-              </Grid>
-              <Grid item xs={6}>
-                <div className="imgPreview" style={imagePreviewStyle}>
-                  {$imagePreview}
-                </div>
-              </Grid>
-            </Grid>
-          </div>
+          {successAlert ? (
+            <Alert variant="outlined" severity="success">
+              Service is successfully added to the database!
+            </Alert>
+          ) : (
+            ""
+          )}
+
+          {errorAlert ? (
+            <Alert variant="outlined" severity="error">
+              Unexpected error occured. Please try later!
+            </Alert>
+          ) : (
+            ""
+          )}
+
+          {warningAlert ? (
+            <Alert variant="outlined" severity="warning">
+              Please fill name or select image!
+            </Alert>
+          ) : (
+            ""
+          )}
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            className={classes.submit}
+            disabled={loading}
+            startIcon={<Add />}
+            onClick={handleButtonClick}
+          >
+            {!loading ? "Add Service" : <CircularProgress />}
+          </Button>
+
+          <Grid container></Grid>
         </form>
       </div>
-    );
-  }
+    </Container>
+  );
 }
-
-export default FileUpload;

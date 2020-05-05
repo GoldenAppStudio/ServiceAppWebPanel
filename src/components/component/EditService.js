@@ -130,8 +130,10 @@ export default function EditService() {
         onChangeIndex={handleChangeIndex}
       >
         <TabPanel value={value} index={0} dir={theme.direction}>
-          <h1>Edit Service</h1>
-          <Edit_Service />
+          <div>
+            <h1>Edit Service</h1>
+            <Edit_Service />
+          </div>
         </TabPanel>
         <TabPanel value={value} index={1} dir={theme.direction}>
           <h1>Edit Sub-Service</h1>

@@ -9,6 +9,7 @@ import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
 import FileUpload from "./service/FileUpload";
 import AddSubService from "./subservice/AddSubService";
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -21,7 +22,7 @@ function TabPanel(props) {
       aria-labelledby={`full-width-tab-${index}`}
       {...other}
     >
-      {value === index && <Box p={3}>{children}</Box>}
+      {value === index && <Box p={1}>{children}</Box>}
     </Typography>
   );
 }
@@ -29,42 +30,41 @@ function TabPanel(props) {
 TabPanel.propTypes = {
   children: PropTypes.node,
   index: PropTypes.any.isRequired,
-  value: PropTypes.any.isRequired
+  value: PropTypes.any.isRequired,
 };
 
 function a11yProps(index) {
   return {
     id: `full-width-tab-${index}`,
-    "aria-controls": `full-width-tabpanel-${index}`
+    "aria-controls": `full-width-tabpanel-${index}`,
   };
 }
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",
     flexWrap: "wrap",
     width: "100%",
     "& > * + *": {
-      marginTop: theme.spacing(2)
-    }
+      marginTop: theme.spacing(2),
+    },
   },
   button: {
     width: 500,
     marginTop: 20,
     marginLeft: "22%",
-    marginRight: "22%"
+    marginRight: "22%",
   },
   container: {
-    display: "flex",
-    flexWrap: "wrap",
-    backgroundColor: theme.palette.background.paper
+    width: "100%",
+    backgroundColor: theme.palette.background.paper,
   },
 
   textField: {
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
-    width: 200
-  }
+    width: 200,
+  },
 }));
 
 export default function AddService() {
@@ -105,7 +105,7 @@ export default function AddService() {
     setValue(newValue);
   };
 
-  const handleChangeIndex = index => {
+  const handleChangeIndex = (index) => {
     setValue(index);
   };
   return (
@@ -129,11 +129,9 @@ export default function AddService() {
         onChangeIndex={handleChangeIndex}
       >
         <TabPanel value={value} index={0} dir={theme.direction}>
-          <h1>Add Service</h1>
           <FileUpload />
         </TabPanel>
         <TabPanel value={value} index={1} dir={theme.direction}>
-          <h1>Add Sub-Service</h1>
           <AddSubService />
         </TabPanel>
       </SwipeableViews>

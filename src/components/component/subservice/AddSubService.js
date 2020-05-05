@@ -1,270 +1,208 @@
-import React, { Component } from "react";
-import FormHelperText from "@material-ui/core/FormHelperText";
-import FormControl from "@material-ui/core/FormControl";
-import NativeSelect from "@material-ui/core/NativeSelect";
-import { storage } from "../../../Firebase";
-import firebase from "firebase";
+import React from "react";
 import Button from "@material-ui/core/Button";
-import CloudUploadIcon from "@material-ui/icons/CloudUpload";
+import CssBaseline from "@material-ui/core/CssBaseline";
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
+import { makeStyles } from "@material-ui/core/styles";
+import Container from "@material-ui/core/Container";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Alert from "@material-ui/lab/Alert";
+import { storage } from "../../../Firebase";
+import firebase from "firebase";
+import ImageUploader from "react-images-upload";
+import FormHelperText from "@material-ui/core/FormHelperText";
+import NativeSelect from "@material-ui/core/NativeSelect";
+import Add from "@material-ui/icons/AddBoxRounded";
 
 const database = firebase.database();
-const ref = database.ref("ServiceList");
+const ref = database.ref("service_list");
+var serviceList = ["Choose Service"];
+var UID = null;
 
-export default class AddSubService extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      image: null,
-      file: "",
-      imagePreviewUrl: "",
-      url: "",
-      progress: 0,
-      subServiceName: "",
-      count: null,
-      isCountAvailable: false,
-      labelWidth: 0,
-      service: "",
-      serviceCount: 2,
-      serviceList: [],
-    };
-  }
+const useStyles = makeStyles((theme) => ({
+  paper: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  form: {
+    width: "100%", // Fix IE 11 issue.
+    marginTop: theme.spacing(1),
+  },
+  submit: {
+    margin: theme.spacing(3, 0, 2),
+  },
+}));
 
-  updateInput = (event) => {
-    this.setState({ subServiceName: event.target.value });
-  };
-
-  handleImageChange(e) {
-    e.preventDefault();
-
-    let reader = new FileReader();
-    let file = e.target.files[0];
-
-    reader.onloadend = () => {
-      this.setState({
-        file: file,
-        imagePreviewUrl: reader.result,
-      });
-    };
-
-    reader.readAsDataURL(file);
-  }
-
-  populate_service_list = () => {
-    ref.once("value", (snapshot) => {
-      snapshot.forEach((childSnapshot) => {
-        if (childSnapshot.child("service").val() === "Travel") {
-        } else {
-          this.setState({
-            serviceList: this.state.serviceList.concat([
-              childSnapshot.child("service").val(),
-            ]),
-          });
-        }
-      });
+async function populate_service_list() {
+  await ref.once("value", (snapshot) => {
+    snapshot.forEach((childSnapshot) => {
+      serviceList = serviceList.concat(
+        childSnapshot.child("service_name").val()
+      );
     });
-  };
+  });
+}
 
-  get_child_count = () => {
-    const ref2 = database.ref(
-      `ServiceList/${this.state.serviceCount}/subService`
-    );
-    ref2.once("value", (snapshot) => {
-      this.setState({ count: snapshot.numChildren() });
-    });
-  };
+populate_service_list();
 
-  add_service = () => {
-    const ref3 = database.ref(
-      `ServiceList/${this.state.serviceCount}/subService`
-    );
-    if (this.state.count == null) {
-      setTimeout(() => {}, 2);
-      alert("Connection timeout! Please try again");
+export default function AddSubService() {
+  const classes = useStyles();
+  const [loading, setLoading] = React.useState(false);
+  const [serviceName, setServiceName] = React.useState("Travel");
+  // const [serviceList, setServiceList] = React.useState([]);
+  const [subServiceName, setSubServiceName] = React.useState("");
+  const [successAlert, setSuccessAlert] = React.useState(false);
+  const [errorAlert, setErrorAlert] = React.useState(false);
+  const [warningAlert, setWarningAlert] = React.useState(false);
+  const [image, setImage] = React.useState("");
+
+  const handleButtonClick = () => {
+    if (image === "" || subServiceName === "") {
+      setWarningAlert(true);
     } else {
-      ref3
-        .child(this.state.count + 1)
-        .child("name")
-        .set(this.state.subServiceName);
+      setLoading(true);
+      setWarningAlert(false);
+      // upload image and service data
+      get_service_uid();
     }
   };
 
-  upload_image = () => {
-    const uploadTask = storage
-      .child(
-        `service/sub-service/${
-          this.state.service
-        }/${this.state.subServiceName.trim()}.jpg`
-      )
-      .put(this.state.file);
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        // progrss function ....
-        const progress = Math.round(
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-        );
-        this.setState({ progress });
-      },
-      (error) => {
-        // error function ....
-        console.log(error);
+  async function get_service_uid() {
+    await ref.once("value", (snapshot) => {
+      snapshot.forEach((childSnapshot) => {
+        if (childSnapshot.child("service_name").val() === serviceName) {
+          UID = childSnapshot.child("UID").val();
+          uploadData();
+        }
+      });
+    });
+  }
+
+  const uploadData = () => {
+    var mRef = database.ref("service_list").child(UID);
+    var pushRef = mRef.child("sub_service").push();
+    pushRef.set(
+      {
+        ss_name: subServiceName.trim(),
+        UID: pushRef.key.toString().trim(),
       },
       () => {
-        // complete function ....
-        console.log("count: " + this.state.count);
-        this.add_service();
-        alert("Sub-Service Added");
+        const uploadTask = storage
+          .child(`sub_service_images/${pushRef.key.toString()}.jpg`)
+          .put(image);
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {},
+          (error) => {
+            // error function ....
+            setErrorAlert(true);
+            setLoading(false);
+            console.log(error);
+          },
+          () => {
+            // complete function ....
+            setImage("");
+            setServiceName("");
+            setLoading(false);
+            setSuccessAlert(true);
+          }
+        );
       }
     );
   };
 
-  handleUpload = () => {
-    this.get_child_count();
-    this.upload_image();
-    this.setState({
-      count: 0,
-    });
-  };
+  const onDrop = (picture) => setImage(picture[0]);
 
-  handleChange = (service) => (event) => {
-    this.setState({
-      ...this.state,
-      [service]: event.target.value,
-      serviceCount: event.target.selectedIndex + 2,
-    });
-  };
-
-  componentWillMount() {
-    this.populate_service_list();
-  }
-
-  render() {
-    const fileInputStyle = {
-      borderBottom: "4px solid lightgray",
-      borderRight: "4px solid lightgray",
-      borderTop: "1px solid black",
-      borderLeft: "1px solid black",
-      marginTop: 20,
-      padding: 10,
-      width: 440,
-      cursor: "pointer",
-    };
-
-    const imagePreviewStyle = {
-      textAlign: "center",
-      margin: "5px 15px",
-      height: 123,
-      width: 150,
-      marginTop: 20,
-      marginLeft: 35,
-      borderLeft: "1px solid gray",
-      borderRight: "1px solid gray",
-      borderTop: "5px solid gray",
-      borderBottom: "5px solid gray",
-    };
-
-    let { imagePreviewUrl } = this.state;
-    let $imagePreview = null;
-
-    if (imagePreviewUrl) {
-      $imagePreview = (
-        <img
-          alt={"this"}
-          src={imagePreviewUrl}
-          style={{
-            height: 123,
-            width: 150,
-            textAlign: "center",
-            marginTop: 25,
-          }}
+  return (
+    <Container component="main" maxWidth="xs">
+      <CssBaseline />
+      <div className={classes.paper}>
+        <h3>Add Sub-Service</h3>
+        <ImageUploader
+          fileContainerStyle={{ backgroundColor: "#ddd" }}
+          withIcon={true}
+          buttonStyles={{ backgroundColor: "#c55" }}
+          withPreview
+          singleImage={true}
+          buttonText="Choose image"
+          onChange={onDrop}
+          imgExtension={[".jpg", ".gif", ".png", ".gif"]}
+          maxFileSize={5242880}
         />
-      );
-    } else {
-      $imagePreview = (
-        <div className="previewText">Please select an Image for Preview</div>
-      );
-    }
+        <NativeSelect
+          style={{
+            marginTop: 10,
+            width: "100%",
+          }}
+          value={serviceName}
+          name="service"
+          onChange={(e) => {
+            setServiceName(e.target.value);
+            get_service_uid();
+          }}
+          inputProps={{ "aria-label": "service" }}
+        >
+          {serviceList.map((x) => (
+            <option value={x}>{x}</option>
+          ))}
+        </NativeSelect>
+        <FormHelperText>
+          Choose Service (Wait if you see the list empty as data being loaded)
+        </FormHelperText>
+        <form className={classes.form} noValidate>
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
+            id="email"
+            label="Sub-Service Name"
+            name="email"
+            autoComplete="email"
+            style={{ marginBottom: 20 }}
+            onChange={(e) => {
+              setSubServiceName(e.target.value);
+            }}
+          />
+          {successAlert ? (
+            <Alert variant="outlined" severity="success">
+              Service is successfully added to the database!
+            </Alert>
+          ) : (
+            ""
+          )}
 
-    return (
-      <div style={{}}>
-        <div style={{ flexGrow: 1 }}>
-          <form>
-            <progress
-              value={this.state.progress}
-              max="100"
-              style={{ width: "100%" }}
-            />
-            <Grid container spacing={3}>
-              <Grid item xs={6}>
-                <FormControl
-                  style={{
-                    margin: 1,
-                    marginTop: 15,
-                    minWidth: "100%",
-                  }}
-                >
-                  <NativeSelect
-                    style={{
-                      marginTop: 2,
-                    }}
-                    value={this.state.service}
-                    name="service"
-                    onChange={this.handleChange("service")}
-                    inputProps={{ "aria-label": "service" }}
-                  >
-                    {this.state.serviceList.map((x) => (
-                      <option value={x}>{x}</option>
-                    ))}
-                  </NativeSelect>
-                  <FormHelperText>
-                    Choose Service (Please wait if you see the list empty as
-                    data being loaded)
-                  </FormHelperText>
-                </FormControl>
-                <input
-                  className="fileInput"
-                  type="file"
-                  style={fileInputStyle}
-                  onChange={(e) => this.handleImageChange(e)}
-                />
-                <TextField
-                  id="outlined-full-width"
-                  label="Name of Sub-Service"
-                  style={{ marginTop: 30, width: "100%" }}
-                  placeholder="Name of Sub-Service"
-                  required
-                  onChange={this.updateInput}
-                  name="subServiceName"
-                  margin="normal"
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  variant="outlined"
-                />
-                <Button
-                  variant="contained"
-                  color="primary"
-                  style={{
-                    width: "100%",
-                    marginTop: 35,
-                  }}
-                  onClick={this.handleUpload}
-                  startIcon={<CloudUploadIcon />}
-                >
-                  Add Sub-Service
-                </Button>
-              </Grid>
-              <Grid item xs={6}>
-                <div className="imgPreview" style={imagePreviewStyle}>
-                  {$imagePreview}
-                </div>
-              </Grid>
-            </Grid>
-          </form>
-        </div>
+          {errorAlert ? (
+            <Alert variant="outlined" severity="error">
+              Unexpected error occured. Please try later!
+            </Alert>
+          ) : (
+            ""
+          )}
+
+          {warningAlert ? (
+            <Alert variant="outlined" severity="warning">
+              Please fill name or select image!
+            </Alert>
+          ) : (
+            ""
+          )}
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            className={classes.submit}
+            disabled={loading}
+            startIcon={<Add />}
+            onClick={handleButtonClick}
+          >
+            {!loading ? "Add Service" : <CircularProgress />}
+          </Button>
+
+          <Grid container></Grid>
+        </form>
       </div>
-    );
-  }
+    </Container>
+  );
 }

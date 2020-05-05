@@ -15,6 +15,8 @@ import IconSubscription from "../../assets/icon-subscription";
 import IconBurger from "../../assets/icon-burger";
 import iconSearch from "../../assets/icon-search";
 import NewReleasesIcon from "@material-ui/icons/NewReleases";
+import { Checkbox } from "@material-ui/core";
+import checkboxOn from "../../assets/checkbox-on";
 const styles = StyleSheet.create({
   burgerIcon: {
     cursor: "pointer",
@@ -158,13 +160,13 @@ function SidebarComponent({ onChange, selectedItem }) {
 
             <MenuItemComponent
               title="Delete Services"
-              icon={IconAgents}
+              icon={IconSettings}
               onClick={() => onItemClicked("DEL")}
               active={selectedItem === "DEL"}
             />
 
             <MenuItemComponent
-              title="Service Provider"
+              title="Service Providers"
               icon={IconBellNew}
               onClick={() => onItemClicked("SP")}
               active={selectedItem === "SP"}
@@ -184,7 +186,7 @@ function SidebarComponent({ onChange, selectedItem }) {
             <div className={css(styles.separator)}></div>
             <MenuItemComponent
               title="Settings"
-              icon={IconSettings}
+              icon={checkboxOn}
               onClick={() => onItemClicked("Settings")}
               active={selectedItem === "Settings"}
             />

@@ -1,3 +1,4 @@
 import React from "react";
+import DeleteIcon from "@material-ui/icons/Delete";
 
-export default props => <i className="material-icons">settings</i>;
+export default (props) => <DeleteIcon style={{ color: "#ccc" }} />;

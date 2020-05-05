@@ -54,7 +54,7 @@ class App extends React.Component {
       case "SP":
         return <ServiceProvider />;
       default:
-        return <ContentComponent />;
+        return <DeleteTheService />;
     }
   }
 
