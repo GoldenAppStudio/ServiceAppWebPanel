@@ -8,6 +8,11 @@ import Typography from "@material-ui/core/Typography";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import Button from "@material-ui/core/Button";
 import Divider from "@material-ui/core/Divider";
+import Dialog from "@material-ui/core/Dialog";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogTitle from "@material-ui/core/DialogTitle";
 
 const data = [];
 const db = firebase.firestore();
@@ -16,6 +21,10 @@ const database = firebase.database();
 export default class NewServiceProvider extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      _warning: false,
+      UID: "",
+    };
 
     this.interval = setInterval(
       () => this.setState({ time: Date.now() }),
@@ -122,7 +131,9 @@ export default class NewServiceProvider extends Component {
         <Divider />
         <ExpansionPanelActions>
           <Button
-            onClick={this.deny_request(snapshot.UID)}
+            onClick={() => {
+              this.setState({ _warning: true, UID: snapshot.UID });
+            }}
             variant="outlined"
             color="secondary"
           >
@@ -174,6 +185,42 @@ export default class NewServiceProvider extends Component {
             </div>
           </ExpansionPanelSummary>
         </ExpansionPanel>
+        <Dialog
+          open={this.state._warning}
+          onClose={() => {
+            this.setState({ _warning: false });
+          }}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle style={{ color: "#f00" }} id="alert-dialog-title">
+            {"Warning! Are you sure?"}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              This can not be undone. Please be sure about it.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                this.setState({ _warning: false });
+              }}
+              color="primary"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={(e) => {
+                this.deny_request(this.state.UID);
+              }}
+              color="secondary"
+              autoFocus
+            >
+              Proceed
+            </Button>
+          </DialogActions>
+        </Dialog>
         {data.map(this.get_sp_table)}
       </div>
     );

@@ -79,6 +79,7 @@ export default class ServiceProvider extends Component {
       SUB_SERVICE_UID: "",
       SP_UID: "",
       data: [],
+      UID_LIST: [],
       _wrong: false,
       _loading: false,
       snap: {},
@@ -122,6 +123,10 @@ export default class ServiceProvider extends Component {
         snapshot.child("state").val() === this.state.stateX &&
         snapshot.child("district").val() === this.state.districtX
       ) {
+        var list = [];
+        list.push(snapshot.child("UID").val());
+        this.setState({ count: this.state.count + 1, UID_LIST: list });
+        // this.state.UID_LIST.map((uid) => console.log(uid));
         data.push(snapshot.val());
       }
     });
@@ -434,13 +439,13 @@ export default class ServiceProvider extends Component {
       .then((url) => {
         image_url = url;
         this.setState({ url: url });
-        console.log(this.state.url);
       });
 
     return image_url;
   };
 
   get_sp_table = (snapshot) => {
+    //this.fetch_images(snapshot.UID);
     return (
       <ExpansionPanel>
         <ExpansionPanelSummary
@@ -468,16 +473,7 @@ export default class ServiceProvider extends Component {
           </div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
-          <div style={{ flexBasis: "10%" }}>
-            {this.fetch_images(snapshot.UID)}
-            <img
-              style={{ width: 50, height: 50 }}
-              src={this.state.url}
-              alt=""
-              className="img-fluid"
-            />
-          </div>
-          <div style={{ flexBasis: "90%" }}>
+          <div>
             <Typography>{snapshot.description}</Typography>
           </div>
         </ExpansionPanelDetails>
@@ -781,6 +777,7 @@ export default class ServiceProvider extends Component {
           onClose={() => this.setState({ editing: false })}
           TransitionComponent={this.Transition}
         >
+          {this.fetch_images(this.state.snap.UID)}
           <AppBar
             style={{
               position: "relative",
@@ -818,18 +815,29 @@ export default class ServiceProvider extends Component {
           <div style={{ flexGrow: 1, margin: 15 }}>
             <Grid container>
               <Grid item xs={6}>
-                <ImageUploader
-                  fileContainerStyle={{ backgroundColor: "#ddd" }}
-                  withIcon={true}
-                  buttonStyles={{ backgroundColor: "#c55" }}
-                  withPreview
-                  style={{ width: 500 }}
-                  singleImage={true}
-                  buttonText="Choose image *"
-                  onChange={(pic) => this.setState({ _image: pic[0] })}
-                  imgExtension={[".jpg", ".gif", ".png", ".gif"]}
-                  maxFileSize={5242880}
-                />
+                <div>
+                  <img
+                    style={{ width: 100, height: 100, marginLeft: "30%" }}
+                    alt=""
+                    src={this.state.url}
+                    className="img-fluid"
+                  />
+                  <ImageUploader
+                    fileContainerStyle={{
+                      backgroundColor: "#ddd",
+                      marginLeft: 10,
+                    }}
+                    withIcon={true}
+                    buttonStyles={{ backgroundColor: "#c55" }}
+                    withPreview
+                    style={{ width: 500 }}
+                    singleImage={true}
+                    buttonText="Choose image *"
+                    onChange={(pic) => this.setState({ _image: pic[0] })}
+                    imgExtension={[".jpg", ".gif", ".png", ".gif"]}
+                    maxFileSize={5242880}
+                  />
+                </div>
 
                 <TextField
                   id="outlined-full-width"
@@ -1047,7 +1055,6 @@ export default class ServiceProvider extends Component {
             Nothing here. Add new Service providers
           </div>
         ) : (
-          // data.map()
           data.map(this.get_sp_table)
         )}
       </div>

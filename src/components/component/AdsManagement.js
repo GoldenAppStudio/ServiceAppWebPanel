@@ -68,6 +68,8 @@ export default class AdsManagement extends Component {
       _website: "",
       _image: null,
       UID: "",
+      url: "",
+      snap: "",
       snapshot_id: "",
       _warning: false,
       _loading: false,
@@ -265,20 +267,7 @@ export default class AdsManagement extends Component {
           </div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
-          <div>
-            <img
-              src={d}
-              style={{
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "50%",
-                borderRadius: "50%",
-                width: 75,
-                height: 75,
-              }}
-              alt="Avatar"
-            />
-          </div>
-          <div style={{ marginLeft: 30 }}>
+          <div style={{ marginLeft: 5 }}>
             <Typography>{snapshot.longDisc}</Typography>
           </div>
         </ExpansionPanelDetails>
@@ -298,6 +287,7 @@ export default class AdsManagement extends Component {
                 _address: snapshot.address,
                 UID: snapshot.UID,
                 snapshot: snapshot,
+                snap: snapshot,
               });
             }}
             variant="outlined"
@@ -373,6 +363,18 @@ export default class AdsManagement extends Component {
     this.get_ads();
     this.set_image(3);
   }
+
+  fetch_images = (UID) => {
+    var storage = firebase.storage();
+    var storageRef = storage.ref();
+    storageRef
+      .child("ads_images")
+      .child(UID + ".jpg")
+      .getDownloadURL()
+      .then((url) => {
+        this.setState({ url: url });
+      });
+  };
 
   render() {
     return (
@@ -609,6 +611,7 @@ export default class AdsManagement extends Component {
           onClose={() => this.setState({ editing: false })}
           TransitionComponent={this.Transition}
         >
+          {this.fetch_images(this.state.UID)}
           <AppBar
             style={{
               position: "relative",
@@ -653,6 +656,12 @@ export default class AdsManagement extends Component {
           <div style={{ flexGrow: 1, margin: 10 }}>
             <Grid container>
               <Grid item xs={6}>
+                <img
+                  style={{ width: 100, height: 100, marginLeft: "30%" }}
+                  alt=""
+                  src={this.state.url}
+                  className="img-fluid"
+                />
                 <ImageUploader
                   fileContainerStyle={{ backgroundColor: "#ddd" }}
                   withIcon={true}
