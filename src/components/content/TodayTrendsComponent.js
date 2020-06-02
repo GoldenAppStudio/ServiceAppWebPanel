@@ -403,7 +403,7 @@ class TodayTrendsComponent extends React.Component {
                   gridVisible={false}
                   pathColor="#00f"
                   labelsColor="#000"
-                  pathWidth={3}
+                  pathWidth={2}
                 />
               </div>
             )}

@@ -15,7 +15,6 @@ import Alert from "@material-ui/lab/Alert";
 
 const database = firebase.database();
 const ref = database.ref("service_list");
-var UID;
 
 export default class DeleteService extends Component {
   constructor(props) {
@@ -146,7 +145,7 @@ export default class DeleteService extends Component {
             }}
             startIcon={<Delete />}
           >
-            {!this.state.loading ? "Add Service" : <CircularProgress />}
+            {!this.state.loading ? "Delete Service" : <CircularProgress />}
           </Button>
           <Dialog
             open={this.state.open}

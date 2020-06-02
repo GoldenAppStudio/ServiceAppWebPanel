@@ -17,6 +17,7 @@ import iconSearch from "../../assets/icon-search";
 import NewReleasesIcon from "@material-ui/icons/NewReleases";
 import { Checkbox } from "@material-ui/core";
 import checkboxOn from "../../assets/checkbox-on";
+import iconSettings from "../../assets/icon-settings";
 const styles = StyleSheet.create({
   burgerIcon: {
     cursor: "pointer",
@@ -182,6 +183,12 @@ function SidebarComponent({ onChange, selectedItem }) {
               icon={iconSearch}
               onClick={() => onItemClicked("Ad")}
               active={selectedItem === "Ad"}
+            />
+            <MenuItemComponent
+              title="Bus System"
+              icon={IconContacts}
+              onClick={() => onItemClicked("Bus")}
+              active={selectedItem === "Bus"}
             />
             <div className={css(styles.separator)}></div>
             <MenuItemComponent

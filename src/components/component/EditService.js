@@ -22,7 +22,7 @@ function TabPanel(props) {
       aria-labelledby={`full-width-tab-${index}`}
       {...other}
     >
-      {value === index && <Box p={3}>{children}</Box>}
+      {value === index && <Box p={1}>{children}</Box>}
     </Typography>
   );
 }
@@ -56,8 +56,9 @@ const useStyles = makeStyles((theme) => ({
     marginRight: "22%",
   },
   container: {
-    display: "flex",
-    flexWrap: "wrap",
+    /* display: "flex",
+    flexWrap: "wrap", */
+    width: "100%",
     backgroundColor: theme.palette.background.paper,
   },
 
@@ -131,12 +132,10 @@ export default function EditService() {
       >
         <TabPanel value={value} index={0} dir={theme.direction}>
           <div>
-            <h1>Edit Service</h1>
             <Edit_Service />
           </div>
         </TabPanel>
         <TabPanel value={value} index={1} dir={theme.direction}>
-          <h1>Edit Sub-Service</h1>
           <Edit_Sub_Service />
         </TabPanel>
       </SwipeableViews>

@@ -12,28 +12,17 @@ import Divider from "@material-ui/core/Divider";
 const data = [];
 const db = firebase.firestore();
 const database = firebase.database();
-var storageRef = firebase.storage().ref();
-var test;
-
-storageRef
-  .child("ads_images/1.jpg")
-  .getDownloadURL()
-  .then(function (url) {
-    test = url;
-  })
-  .catch(function () {});
 
 export default class NewServiceProvider extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      totalCount: 0,
-    };
+
     this.interval = setInterval(
       () => this.setState({ time: Date.now() }),
       1000
     );
   }
+
   async get_service_providers() {
     await db
       .collection("Users")
@@ -50,64 +39,53 @@ export default class NewServiceProvider extends Component {
       .doc(id)
       .delete()
       .then(function () {
-        alert("Service Provider permission denied.");
+        database.ref().child("PendingRequests").child(id).remove();
+        alert("Service Provider removed from list.");
         window.location.reload();
       })
       .catch(function (error) {
         console.error("Error removing document: ", error);
+      });
+  };
+
+  get_service_uid = (snapshot) => {
+    database
+      .ref()
+      .child("service_list")
+      .once("value", (s) => {
+        s.forEach((childSnapshot) => {
+          if (childSnapshot.child("service_name").val() === snapshot.service) {
+            snapshot.service = childSnapshot.child("UID").val();
+            childSnapshot.child("sub_service").forEach((value) => {
+              if (value.child("ss_name").val() === snapshot.sub_service) {
+                snapshot.sub_service = value.child("UID").val();
+                database
+                  .ref()
+                  .child("service_providers")
+                  .child(snapshot.UID)
+                  .update(snapshot);
+                window.location.reload();
+              }
+            });
+          }
+        });
       });
   };
 
   allow_request = (snapshot) => () => {
-    this.get_total_count(snapshot);
-  };
-
-  async get_total_count(snapshot) {
-    const ref2 = database.ref(
-      `Service/${snapshot.service}/${snapshot.sub}/${snapshot.state}/${snapshot.district}/`
-    );
-    console.log(
-      `Service/${snapshot.sub}/${snapshot.state}/${snapshot.district}/`
-    );
-    await ref2.once("value", (ds) => {
-      this.setState({ totalCount: ds.numChildren() });
-      this.upload_first(snapshot);
-    });
-    console.log(this.state.totalCount);
-  }
-
-  async upload_first(snapshot) {
-    const ref3 = database.ref(
-      `Service/${snapshot.service}/${snapshot.sub}/${snapshot.state}/${snapshot.district}/`
-    );
-    ref3.child(this.state.totalCount + 1).update(snapshot);
-    ref3
-      .child(this.state.totalCount + 1)
-      .child("priority")
-      .set(`${this.state.totalCount + 1}`);
-    ref3
-      .child(this.state.totalCount + 1)
-      .child("uid")
-      .set(`${this.state.totalCount + 1}`);
-    this.upload_second(snapshot);
-  }
-
-  async upload_second(snapshot) {
-    const ref4 = database.ref(`AutoSP/${snapshot.login}/`);
-    ref4.update(snapshot);
-    ref4.child("priority").set(`${this.state.totalCount + 1}`);
-    ref4.child("uid").set(`${this.state.totalCount + 1}`);
+    this.get_service_uid(snapshot);
     db.collection("Users")
-      .doc(snapshot.login)
+      .doc(snapshot.UID)
       .delete()
       .then(function () {
-        alert("Service Provider permission granted.");
+        database.ref().child("PendingRequests").child(snapshot.UID).remove();
+        alert("Service Provider added to database.");
         window.location.reload();
       })
       .catch(function (error) {
         console.error("Error removing document: ", error);
       });
-  }
+  };
 
   get_sp_table = (snapshot) => {
     return (
@@ -124,7 +102,7 @@ export default class NewServiceProvider extends Component {
             <Typography>{snapshot.service}</Typography>
           </div>
           <div style={{ flexBasis: "33.33%" }}>
-            <Typography>{snapshot.sub}</Typography>
+            <Typography>{snapshot.sub_service}</Typography>
           </div>
           <div style={{ flexBasis: "33.33%" }}>
             <Typography>{snapshot.state}</Typography>
@@ -137,18 +115,6 @@ export default class NewServiceProvider extends Component {
           </div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
-          <img
-            src={test}
-            style={{
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "50%",
-              borderRadius: "50%",
-              width: 75,
-              height: 75,
-            }}
-            alt="Avatar"
-          />
-
           <div style={{ marginLeft: 20 }}>
             <Typography>{snapshot.description}</Typography>
           </div>
@@ -156,7 +122,7 @@ export default class NewServiceProvider extends Component {
         <Divider />
         <ExpansionPanelActions>
           <Button
-            onClick={this.deny_request(snapshot.login)}
+            onClick={this.deny_request(snapshot.UID)}
             variant="outlined"
             color="secondary"
           >

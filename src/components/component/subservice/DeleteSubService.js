@@ -10,10 +10,12 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Alert from "@material-ui/lab/Alert";
 
 const database = firebase.database();
-const ref = database.ref("ServiceList");
-var mSubServiceCount;
+const ref = database.ref("service_list");
+
 export default class DeleteSubService extends Component {
   constructor(props) {
     super(props);
@@ -21,127 +23,105 @@ export default class DeleteSubService extends Component {
       open: false,
       service: "",
       subService: "",
-      serviceCount: 0,
-      subServiceCount: 0,
-      serviceList: [],
-      subServiceList: [],
+      serviceList: ["Choose Service"],
+      subServiceList: ["Choose Sub-Service"],
+      success: false,
+      warning: false,
+      error: false,
+      loading: false,
+      UID: "",
     };
   }
-
-  handleClickOpen = () => {
-    this.setState({ open: true });
-    this.return_data(0);
-  };
-
-  handleClose = () => {
-    this.setState({ open: false });
-    this.return_data(0);
-    this.delete_sub_service();
-    this.populate_service_list();
-  };
 
   async populate_service_list() {
     await ref.once("value", (snapshot) => {
       snapshot.forEach((childSnapshot) => {
-        if (childSnapshot.child("service").val() === "Travel") {
-        } else {
-          this.setState({
-            serviceList: this.state.serviceList.concat([
-              childSnapshot.child("service").val(),
-            ]),
-          });
+        this.setState({
+          serviceList: this.state.serviceList.concat(
+            childSnapshot.child("service_name").val()
+          ),
+        });
+      });
+    });
+  }
+
+  async get_service_uid() {
+    await ref.once("value", (snapshot) => {
+      snapshot.forEach((childSnapshot) => {
+        if (childSnapshot.child("service_name").val() === this.state.service) {
+          this.setState({ UID: childSnapshot.child("UID").val() });
+          this.populate_sub_service_list();
         }
       });
     });
   }
 
-  async populate_sub_service_list(e) {
+  async populate_sub_service_list() {
     await ref
-      .child(e)
-      .child("subService")
+      .child(this.state.UID)
+      .child("sub_service")
       .once("value", (snapshot) => {
         snapshot.forEach((childSnapshot) => {
           this.setState({
             subServiceList: this.state.subServiceList.concat([
-              childSnapshot.child("name").val(),
+              childSnapshot.child("ss_name").val(),
             ]),
           });
         });
       });
   }
 
-  handleChange = (service) => (event) => {
-    this.setState({
-      ...this.state,
-      [service]: event.target.value,
-      serviceCount: event.target.selectedIndex + 1,
-      subServiceList: [],
-    });
-    this.populate_sub_service_list(event.target.selectedIndex + 1);
-  };
-
-  get_index = (subService) => (event) => {
-    this.setState({
-      ...this.state,
-      [subService]: event.target.value,
-      subServiceCount: event.target.selectedIndex,
-    });
-    mSubServiceCount = event.target.selectedIndex;
-    console.log(mSubServiceCount);
-  };
-
-  async return_data(i) {
-    var dataSnapshotVal;
-    var ref2 = database
-      .ref("ServiceList")
-      .child(this.state.serviceCount)
-      .child("subService")
-      .child(`${mSubServiceCount + 1 + i}`);
-
-    try {
-      dataSnapshotVal = await ref2.once("value");
-      return dataSnapshotVal.val();
-    } catch (error) {}
-    return dataSnapshotVal;
-  }
-
   delete_sub_service = () => {
-    ref
-      .child(this.state.serviceCount)
-      .child("subService")
-      .child(this.state.subServiceCount)
-      .remove();
-    this.adjust_database();
-  };
+    if (
+      this.state.service === "" ||
+      this.state.service === "Choose Service" ||
+      this.state.subService === "" ||
+      this.state.subService === "Choose Sub-Service"
+    ) {
+      this.setState({
+        open: false,
+        loading: false,
+        warning: true,
+        success: false,
+        error: false,
+      });
+    } else {
+      this.setState({
+        open: false,
+        loading: true,
+        warning: false,
+        success: false,
+        error: false,
+      });
 
-  async adjust_database() {
-    if (mSubServiceCount < this.state.subServiceList.length) {
-      var loopCount = this.state.subServiceList.length - mSubServiceCount;
-      console.log(loopCount + " loopCount");
-      for (var i = 0; i < loopCount; i++) {
-        var newData = await this.return_data(i);
-        setTimeout(() => {}, 6);
-        ref
-          .child(this.state.serviceCount)
-          .child("subService")
-          .child(`${mSubServiceCount + i}`)
-          .set(newData);
-      }
+      ref
+        .child(this.state.UID)
+        .child("sub_service")
+        .once("value", (snapshot) => {
+          snapshot.forEach((childSnapshot) => {
+            if (
+              childSnapshot.child("ss_name").val() === this.state.subService
+            ) {
+              var deleteRef = database
+                .ref("service_list")
+                .child(this.state.UID)
+                .child("sub_service")
+                .child(childSnapshot.child("UID").val());
+              deleteRef.remove(() => {
+                this.setState({
+                  success: true,
+                  loading: false,
+                  serviceList: ["Choose Service"],
+                  subServiceList: ["Choose Sub-Service"],
+                  service: this.state.service,
+                });
+                this.populate_service_list();
+                this.populate_sub_service_list();
+              });
+            }
+          });
+        });
     }
-    ref
-      .child(this.state.serviceCount)
-      .child("subService")
-      .child(this.state.subServiceList.length)
-      .remove();
-    setTimeout(() => {}, 3);
-    window.location.reload();
-    alert("Sub-Service removed from database.");
-  }
-
-  handleDelete = () => {
-    this.handleClickOpen();
-    this.setState({ serviceList: [] });
-    this.populate_service_list();
   };
 
   componentDidMount() {
@@ -165,12 +145,12 @@ export default class DeleteSubService extends Component {
           }}
           value={this.state.service}
           name="service"
-          onChange={this.handleChange("service")}
+          onChange={(e) => {
+            this.setState({ service: e.target.value });
+            this.get_service_uid();
+          }}
           inputProps={{ "aria-label": "service" }}
         >
-          <option value="" disabled>
-            Choose Service
-          </option>
           {this.state.serviceList.map((x) => (
             <option value={x}>{x}</option>
           ))}
@@ -187,31 +167,64 @@ export default class DeleteSubService extends Component {
           }}
           value={this.state.subService}
           name="subService"
-          onChange={this.get_index("subService")}
+          onChange={(e) => {
+            this.setState({ subService: e.target.value });
+          }}
           inputProps={{ "aria-label": "subService" }}
         >
-          <option value="" disabled>
-            Choose Sub-Service
-          </option>
           {this.state.subServiceList.map((x) => (
             <option value={x}>{x}</option>
           ))}
         </NativeSelect>
-        <FormHelperText>
+        <FormHelperText style={{ marginBottom: 20 }}>
           Choose SubService to delete (Wait if you see the list empty because
           data is loading)
         </FormHelperText>
+
+        {this.state.success ? (
+          <Alert variant="outlined" severity="success" style={{ width: 450 }}>
+            Service is successfully deleted from the database!
+          </Alert>
+        ) : (
+          ""
+        )}
+
+        {this.state.error ? (
+          <Alert variant="outlined" severity="error" style={{ width: 450 }}>
+            Unexpected error occured. Please try later!
+          </Alert>
+        ) : (
+          ""
+        )}
+
+        {this.state.warning ? (
+          <Alert variant="outlined" severity="warning" style={{ width: 450 }}>
+            Please choose service to delete!
+          </Alert>
+        ) : (
+          ""
+        )}
+
         <Button
           variant="contained"
           color="primary"
+          disabled={this.state.loading}
           style={{
             width: 480,
             marginTop: 45,
           }}
-          onClick={this.handleDelete}
+          onClick={() =>
+            this.setState({
+              open: true,
+              warning: false,
+              success: false,
+              error: false,
+              loading: false,
+            })
+          }
           startIcon={<Delete />}
         >
-          Delete Sub-Service
+          {!this.state.loading ? "Delete Sub-Service" : <CircularProgress />}
         </Button>
         <Dialog
           open={this.state.open}
@@ -239,7 +252,11 @@ export default class DeleteSubService extends Component {
             >
               Cancel
             </Button>
-            <Button onClick={this.handleClose} color="secondary" autoFocus>
+            <Button
+              onClick={this.delete_sub_service}
+              color="secondary"
+              autoFocus
+            >
               Proceed
             </Button>
           </DialogActions>

@@ -11,6 +11,7 @@ import NewServiceProvider from "./components/component/NewServiceProvider";
 import AdsManagement from "./components/component/AdsManagement";
 import ServiceProvider from "./components/component/ServiceProvider";
 import DeleteTheService from "./components/component/DeleteTheService";
+import BusSystem from "./components/component/BusSystem";
 
 const styles = StyleSheet.create({
   container: {
@@ -39,6 +40,7 @@ class App extends React.Component {
     switch (param) {
       case "Add":
         return <AddService />;
+      //  Travel is general explorer
       case "Travel":
         return <Travel />;
       case "OverView":
@@ -51,10 +53,12 @@ class App extends React.Component {
         return <NewServiceProvider />;
       case "Ad":
         return <AdsManagement />;
+      case "Bus":
+        return <BusSystem />;
       case "SP":
         return <ServiceProvider />;
       default:
-        return <DeleteTheService />;
+        return <ContentComponent />;
     }
   }
 

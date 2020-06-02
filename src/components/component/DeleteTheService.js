@@ -121,8 +121,8 @@ export default function DeleteTheService() {
           variant="fullWidth"
           aria-label="full width tabs example"
         >
-          <Tab label="Edit Service" {...a11yProps(0)} />
-          <Tab label="Edit Sub-Service" {...a11yProps(1)} />
+          <Tab label="Delete Service" {...a11yProps(0)} />
+          <Tab label="Delete Sub-Service" {...a11yProps(1)} />
         </Tabs>
       </AppBar>
       <SwipeableViews

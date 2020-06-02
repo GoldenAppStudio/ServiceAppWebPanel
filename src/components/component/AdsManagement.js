@@ -1,10 +1,9 @@
 import React, { Component } from "react";
 import Fab from "@material-ui/core/Fab";
 import AddIcon from "@material-ui/icons/Add";
-
 import { storage } from "../../Firebase";
 import firebase from "firebase";
-
+import ImageUploader from "react-images-upload";
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -21,23 +20,23 @@ import Typography from "@material-ui/core/Typography";
 import CloseIcon from "@material-ui/icons/Close";
 import Slide from "@material-ui/core/Slide";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
 import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
 import ExpansionPanelActions from "@material-ui/core/ExpansionPanelActions";
+import CircularProgress from "@material-ui/core/CircularProgress";
 
 const database = firebase.database();
 const ref = database.ref("ShowAd");
-var data = [];
-
-var test;
 var storageRef = firebase.storage().ref();
+var data = [];
+var d;
 storageRef
-  .child("ads_images/1.jpg")
+  .child(`ads_images/${3}.jpg`)
   .getDownloadURL()
   .then(function (url) {
-    test = url;
+    this.setState({ showImage: url });
+    d = url;
   })
   .catch(function () {});
 
@@ -49,16 +48,30 @@ export default class AdsManagement extends Component {
       count: 0,
       scroll: "paper",
       editing: false,
-      progress: 0,
       name: "",
       shortDescription: "",
       longDescription: "",
       phone: "",
-      adList: null,
       email: "",
       address: "",
       priority: 0,
       website: "",
+      image: "",
+      loading: false,
+      _name: "",
+      _email: "",
+      _phone: "",
+      _shortDescription: "",
+      _longDescription: "",
+      _address: "",
+      _priority: 0,
+      _website: "",
+      _image: null,
+      UID: "",
+      snapshot_id: "",
+      _warning: false,
+      _loading: false,
+      showImage: "",
     };
     this.interval = setInterval(
       () => this.setState({ time: Date.now() }),
@@ -69,36 +82,11 @@ export default class AdsManagement extends Component {
   async get_ads() {
     var dataSnapshot = await ref.once("value");
     data = dataSnapshot.val();
-    console.log(data);
   }
 
   Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
   });
-
-  handleClickOpen = () => {
-    this.setState({ open: true });
-  };
-
-  handleClose = () => {
-    this.setState({ open: false });
-  };
-
-  handleImageChange(e) {
-    e.preventDefault();
-
-    let reader = new FileReader();
-    let file = e.target.files[0];
-
-    reader.onloadend = () => {
-      this.setState({
-        file: file,
-        imagePreviewUrl: reader.result,
-      });
-    };
-
-    reader.readAsDataURL(file);
-  }
 
   async get_child_count() {
     await ref.once("value", (snapshot) => {
@@ -106,73 +94,86 @@ export default class AdsManagement extends Component {
     });
   }
 
-  handleClick = () => {
-    this.upload_image();
-  };
-
   upload_image = () => {
-    const uploadTask = storage
-      .child(`ads_images/${this.state.count + 1}.jpg`)
-      .put(this.state.file);
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        // progrss function ....
-        const progress = Math.round(
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-        );
-        this.setState({ progress });
-      },
-      (error) => {
-        // error function ....
-        console.log(error);
-      },
-      () => {
-        // complete function ....
-        console.log("count: " + this.state.count);
-        this.upload_ad_data();
-        alert("Ad Published.");
-      }
-    );
+    if (
+      this.state.image == null ||
+      this.state.name === "" ||
+      this.state.longDescription === "" ||
+      this.state.shortDescription === "" ||
+      this.state.priority === "" ||
+      this.state.email === ""
+    ) {
+      alert("Please add all required field!");
+      this.setState({ loading: false });
+    } else {
+      const uploadTask = storage
+        .child(`ads_images/${this.state.count + 1}.jpg`)
+        .put(this.state.image);
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          // progrss function ....
+          const progress = Math.round(
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          );
+          this.setState({ progress });
+        },
+        (error) => {
+          // error function ....
+          console.log(error);
+        },
+        () => {
+          // complete function ....
+          this.upload_ad_data();
+        }
+      );
+    }
   };
 
   async upload_ad_data() {
     ref
       .child(this.state.count + 1)
       .child("name")
-      .set(this.state.name);
+      .set(this.state.name.trim());
     ref
       .child(this.state.count + 1)
       .child("address")
-      .set(this.state.address);
+      .set(this.state.address.trim());
     ref
       .child(this.state.count + 1)
       .child("email")
-      .set(this.state.email);
+      .set(this.state.email.trim());
     ref
       .child(this.state.count + 1)
       .child("phone")
-      .set(this.state.phone);
+      .set(this.state.phone.trim());
     ref
       .child(this.state.count + 1)
       .child("priority")
-      .set(parseInt(this.state.priority));
+      .set(parseInt(this.state.priority.trim()));
     ref
       .child(this.state.count + 1)
       .child("shortDisc")
-      .set(this.state.shortDescription);
+      .set(this.state.shortDescription.trim());
     ref
       .child(this.state.count + 1)
       .child("longDisc")
-      .set(this.state.longDescription);
+      .set(this.state.longDescription.trim());
     ref
       .child(this.state.count + 1)
       .child("id")
       .set(this.state.count + 1);
     ref
       .child(this.state.count + 1)
+      .child("UID")
+      .set(this.state.count + 1);
+    ref
+      .child(this.state.count + 1)
       .child("website")
-      .set(this.state.website);
+      .set(this.state.website.trim());
+    alert("Ad Published.");
+    window.location.reload();
+    this.setState({ open: false, loading: false });
   }
 
   handleOpen = (scrollType) => () => {
@@ -182,52 +183,9 @@ export default class AdsManagement extends Component {
     });
   };
 
-  handleClickClose = () => {
-    this.setState({ editing: false });
-  };
-
   edit_ad = (snapshot) => () => {
     this.get_total_count(snapshot);
-    alert("here");
-    return (
-      <div>
-        <Button onClick={this.handleOpen("paper")}>scroll=paper</Button>
-        <Button onClick={this.handleOpen("body")}>scroll=body</Button>
-        <Dialog
-          open={this.state.editing}
-          onClose={this.handleClickClose}
-          scroll={this.state.scroll}
-          aria-labelledby="scroll-dialog-title"
-          aria-describedby="scroll-dialog-description"
-        >
-          <DialogTitle id="scroll-dialog-title">Subscribe</DialogTitle>
-          <DialogContent dividers={this.state.scroll === "paper"}>
-            <DialogContentText
-              id="scroll-dialog-description"
-              // ref={descriptionElementRef}
-              tabIndex={-1}
-            >
-              {[...new Array(50)]
-                .map(
-                  () => `Cras mattis consectetur purus sit amet fermentum.
-Cras justo odio, dapibus ac facilisis in, egestas eget quam.
-Morbi leo risus, porta ac consectetur ac, vestibulum at eros.
-Praesent commodo cursus magna, vel scelerisque nisl consectetur et.`
-                )
-                .join("\n")}
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={this.handleClickClose} color="primary">
-              Cancel
-            </Button>
-            <Button onClick={this.handleClickClose} color="primary">
-              Subscribe
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </div>
-    );
+    return <div></div>;
   };
 
   delete_ad = (e, snapshot) => {
@@ -250,18 +208,34 @@ Praesent commodo cursus magna, vel scelerisque nisl consectetur et.`
   async adjust_database(id) {
     if (id < this.state.count) {
       var loopCount = this.state.count - id;
-      console.log(loopCount + " loopCount");
+      // console.log(loopCount + " loopCount");
       for (var i = 0; i < loopCount; i++) {
         var newData = await this.return_data(i, id);
         setTimeout(() => {}, 6);
         ref.child(`${id + i}`).set(newData);
+        ref
+          .child(`${id + i}`)
+          .child("UID")
+          .set(parseInt(id + i));
       }
     }
     ref.child(this.state.count).remove();
     setTimeout(() => {}, 3);
+    this.setState({ loading: false });
     window.location.reload();
     alert("In-App Ad removed from database.");
   }
+
+  set_image = (id) => {
+    storageRef
+      .child(`ads_images/${id}.jpg`)
+      .getDownloadURL()
+      .then(function (url) {
+        this.setState({ showImage: url });
+        d = url;
+      })
+      .catch(function () {});
+  };
 
   get_ad_table = (snapshot) => {
     return (
@@ -292,86 +266,115 @@ Praesent commodo cursus magna, vel scelerisque nisl consectetur et.`
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
           <div>
+            <img
+              src={d}
+              style={{
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "50%",
+                borderRadius: "50%",
+                width: 75,
+                height: 75,
+              }}
+              alt="Avatar"
+            />
+          </div>
+          <div style={{ marginLeft: 30 }}>
             <Typography>{snapshot.longDisc}</Typography>
           </div>
         </ExpansionPanelDetails>
         <Divider />
         <ExpansionPanelActions>
-          {/*  <Button
-            onClick={(e) => {
-              // this.setState({ editing: true });
-              // a// lert("hello");
+          <Button
+            onClick={() => {
+              this.setState({ editing: true });
+              this.setState({
+                _name: snapshot.name,
+                _email: snapshot.email,
+                _phone: snapshot.phone,
+                _shortDescription: snapshot.shortDisc,
+                _longDescription: snapshot.longDisc,
+                _website: snapshot.website,
+                _priority: snapshot.priority,
+                _address: snapshot.address,
+                UID: snapshot.UID,
+                snapshot: snapshot,
+              });
             }}
             variant="outlined"
             color="primary"
           >
             Edit
-          </Button> */}
+          </Button>
           <Button
             onClick={(e) => {
-              this.delete_ad(e, snapshot.id);
+              this.setState({
+                _warning: true,
+                UID: snapshot.UID,
+                snapshot_id: snapshot.id,
+              });
             }}
             variant="outlined"
             color="secondary"
           >
-            Delete
+            {this.state._loading ? (
+              <CircularProgress style={{ width: 20, height: 20 }} />
+            ) : (
+              <div>Delete</div>
+            )}
           </Button>
         </ExpansionPanelActions>
       </ExpansionPanel>
     );
   };
 
+  update_data = () => {
+    if (this.state._image !== null) {
+      const uploadTask = storage
+        .child(`ads_images/${this.state.UID + 1}.jpg`)
+        .put(this.state.UID);
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          // progrss function ....
+        },
+        (error) => {
+          // error function ....
+          console.log(error);
+        },
+        () => {
+          // complete function ....
+        }
+      );
+    }
+    ref.child(this.state.UID).child("name").set(this.state._name.trim());
+    ref.child(this.state.UID).child("email").set(this.state._email.trim());
+    ref.child(this.state.UID).child("phone").set(this.state._phone.trim());
+    ref
+      .child(this.state.UID)
+      .child("priority")
+      .set(parseInt(this.state._priority.trim()));
+    ref.child(this.state.UID).child("address").set(this.state._address.trim());
+    ref
+      .child(this.state.UID)
+      .child("shortDisc")
+      .set(this.state._shortDescription.trim());
+    ref
+      .child(this.state.UID)
+      .child("longDisc")
+      .set(this.state._longDescription.trim());
+    ref.child(this.state.UID).child("website").set(this.state._website);
+    this.setState({ loading: false, editing: false });
+    window.location.reload();
+    alert("In-App Ad updated in database.");
+  };
+
   componentDidMount() {
     this.get_child_count();
     this.get_ads();
+    this.set_image(3);
   }
+
   render() {
-    const fileInputStyle = {
-      borderBottom: "4px solid lightgray",
-      borderRight: "4px solid lightgray",
-      borderTop: "1px solid black",
-      borderLeft: "1px solid black",
-      marginTop: 20,
-      padding: 10,
-      width: 375,
-      cursor: "pointer",
-    };
-
-    const imagePreviewStyle = {
-      textAlign: "center",
-      margin: "5px 15px",
-      height: 123,
-      width: 150,
-      marginTop: 20,
-      marginLeft: 35,
-      borderLeft: "1px solid gray",
-      borderRight: "1px solid gray",
-      borderTop: "5px solid gray",
-      borderBottom: "5px solid gray",
-    };
-
-    let { imagePreviewUrl } = this.state;
-    let $imagePreview = null;
-
-    if (imagePreviewUrl) {
-      $imagePreview = (
-        <img
-          alt={"this"}
-          src={imagePreviewUrl}
-          style={{
-            height: 123,
-            width: 150,
-            textAlign: "center",
-            marginTop: 25,
-          }}
-        />
-      );
-    } else {
-      $imagePreview = (
-        <div className="previewText">Please select an Image for Preview</div>
-      );
-    }
-
     return (
       <div>
         <h2 style={{ textAlign: "center" }}>In-App Ads</h2>
@@ -402,7 +405,7 @@ Praesent commodo cursus magna, vel scelerisque nisl consectetur et.`
           </ExpansionPanelSummary>
         </ExpansionPanel>
         <Fab
-          onClick={this.handleClickOpen}
+          onClick={() => this.setState({ open: true })}
           color="primary"
           aria-label="add"
           style={{ right: 35, position: "fixed", bottom: 35 }}
@@ -412,7 +415,7 @@ Praesent commodo cursus magna, vel scelerisque nisl consectetur et.`
         <Dialog
           fullScreen
           open={this.state.open}
-          onClose={this.handleClose}
+          onClose={() => this.setState({ open: false })}
           TransitionComponent={this.Transition}
         >
           <AppBar
@@ -424,7 +427,7 @@ Praesent commodo cursus magna, vel scelerisque nisl consectetur et.`
               <IconButton
                 edge="start"
                 color="inherit"
-                onClick={this.handleClose}
+                onClick={() => this.setState({ open: false })}
                 aria-label="close"
               >
                 <CloseIcon />
@@ -438,30 +441,43 @@ Praesent commodo cursus magna, vel scelerisque nisl consectetur et.`
               >
                 Serve new In-App Ad
               </Typography>
-              <Button autoFocus color="inherit" onClick={this.handleClick}>
-                Serve
+              <Button
+                autoFocus
+                color="inherit"
+                onClick={() => {
+                  this.setState({ loading: true });
+                  this.upload_image();
+                }}
+              >
+                {this.state.loading ? (
+                  <CircularProgress
+                    style={{ width: 40, height: 40, color: "#fff" }}
+                  />
+                ) : (
+                  <div>Serve</div>
+                )}
               </Button>
             </Toolbar>
           </AppBar>
-          <div style={{ flexGrow: 1, margin: 15 }}>
-            <progress
-              value={this.state.progress}
-              max="100"
-              style={{ width: "100%" }}
-            />
-
+          <div style={{ flexGrow: 1, margin: 10 }}>
             <Grid container>
               <Grid item xs={6}>
-                <input
-                  className="fileInput"
-                  type="file"
-                  style={fileInputStyle}
-                  onChange={(e) => this.handleImageChange(e)}
+                <ImageUploader
+                  fileContainerStyle={{ backgroundColor: "#ddd" }}
+                  withIcon={true}
+                  buttonStyles={{ backgroundColor: "#c55" }}
+                  withPreview
+                  style={{ width: 500 }}
+                  singleImage={true}
+                  buttonText="Choose image *"
+                  onChange={(pic) => this.setState({ image: pic[0] })}
+                  imgExtension={[".jpg", ".gif", ".png", ".gif"]}
+                  maxFileSize={5242880}
                 />
                 <TextField
                   id="outlined-full-width"
                   label="Name of Company"
-                  style={{ marginTop: 23, width: 400 }}
+                  style={{ marginTop: 23, width: 500 }}
                   placeholder="Name of Company"
                   required
                   onChange={(e) => {
@@ -477,7 +493,7 @@ Praesent commodo cursus magna, vel scelerisque nisl consectetur et.`
                 <TextField
                   id="outlined-full-width"
                   label="Email"
-                  style={{ marginTop: 23, width: 400 }}
+                  style={{ marginTop: 23, width: 500 }}
                   placeholder="Email"
                   required
                   onChange={(e) => {
@@ -493,9 +509,8 @@ Praesent commodo cursus magna, vel scelerisque nisl consectetur et.`
                 <TextField
                   id="outlined-full-width"
                   label="Phone"
-                  style={{ marginTop: 23, width: 400 }}
+                  style={{ marginTop: 23, width: 500 }}
                   placeholder="Phone"
-                  required
                   onChange={(e) => {
                     this.setState({ phone: e.target.value });
                   }}
@@ -506,12 +521,13 @@ Praesent commodo cursus magna, vel scelerisque nisl consectetur et.`
                   }}
                   variant="outlined"
                 />
+              </Grid>
+              <Grid item xs={6}>
                 <TextField
                   id="outlined-full-width"
                   label="Website"
-                  style={{ marginTop: 23, width: 400 }}
+                  style={{ marginTop: 23, width: 500 }}
                   placeholder="Website"
-                  required
                   onChange={(e) => {
                     this.setState({ website: e.target.value });
                   }}
@@ -525,9 +541,8 @@ Praesent commodo cursus magna, vel scelerisque nisl consectetur et.`
                 <TextField
                   id="outlined-full-width"
                   label="Address"
-                  style={{ marginTop: 23, width: 400 }}
+                  style={{ marginTop: 23, width: 500 }}
                   placeholder="Address"
-                  required
                   onChange={(e) => {
                     this.setState({ address: e.target.value });
                   }}
@@ -538,15 +553,10 @@ Praesent commodo cursus magna, vel scelerisque nisl consectetur et.`
                   }}
                   variant="outlined"
                 />
-              </Grid>
-              <Grid item xs={6}>
-                <div className="imgPreview" style={imagePreviewStyle}>
-                  {$imagePreview}
-                </div>
                 <TextField
                   id="outlined-full-width"
                   label="Short Description"
-                  style={{ marginTop: 23, width: "100%" }}
+                  style={{ marginTop: 23, width: 500 }}
                   placeholder="Short Description"
                   required
                   onChange={(e) => {
@@ -562,12 +572,12 @@ Praesent commodo cursus magna, vel scelerisque nisl consectetur et.`
                 <TextField
                   id="outlined-full-width"
                   label="Long Description"
-                  style={{ marginTop: 23, width: "100%" }}
+                  style={{ marginTop: 23, width: 500 }}
                   placeholder="Long Description"
                   required
-                  onChange={(e) => {
-                    this.setState({ longDescription: e.target.value });
-                  }}
+                  onChange={(e) =>
+                    this.setState({ longDescription: e.target.value })
+                  }
                   name="longDescription"
                   margin="normal"
                   InputLabelProps={{
@@ -578,12 +588,10 @@ Praesent commodo cursus magna, vel scelerisque nisl consectetur et.`
                 <TextField
                   id="outlined-full-width"
                   label="Priority"
-                  style={{ marginTop: 23, width: "100%" }}
+                  style={{ marginTop: 23, width: 500 }}
                   placeholder="Priority"
                   required
-                  onChange={(e) => {
-                    this.setState({ priority: e.target.value });
-                  }}
+                  onChange={(e) => this.setState({ priority: e.target.value })}
                   name="priority"
                   margin="normal"
                   InputLabelProps={{
@@ -595,12 +603,244 @@ Praesent commodo cursus magna, vel scelerisque nisl consectetur et.`
             </Grid>
           </div>
         </Dialog>
+        <Dialog
+          fullScreen
+          open={this.state.editing}
+          onClose={() => this.setState({ editing: false })}
+          TransitionComponent={this.Transition}
+        >
+          <AppBar
+            style={{
+              position: "relative",
+            }}
+          >
+            <Toolbar>
+              <IconButton
+                edge="start"
+                color="inherit"
+                onClick={() => this.setState({ editing: false })}
+                aria-label="close"
+              >
+                <CloseIcon />
+              </IconButton>
+              <Typography
+                variant="h6"
+                style={{
+                  marginLeft: 8,
+                  flex: 1,
+                }}
+              >
+                Edit In-App Ad
+              </Typography>
+              <Button
+                autoFocus
+                color="inherit"
+                onClick={() => {
+                  this.setState({ loading: true });
+                  this.update_data();
+                }}
+              >
+                {this.state.loading ? (
+                  <CircularProgress
+                    style={{ width: 40, height: 40, color: "#fff" }}
+                  />
+                ) : (
+                  <div>Save</div>
+                )}
+              </Button>
+            </Toolbar>
+          </AppBar>
+          <div style={{ flexGrow: 1, margin: 10 }}>
+            <Grid container>
+              <Grid item xs={6}>
+                <ImageUploader
+                  fileContainerStyle={{ backgroundColor: "#ddd" }}
+                  withIcon={true}
+                  buttonStyles={{ backgroundColor: "#c55" }}
+                  withPreview
+                  style={{ width: 500 }}
+                  singleImage={true}
+                  buttonText="Choose image"
+                  onChange={(pic) => this.setState({ _image: pic[0] })}
+                  imgExtension={[".jpg", ".gif", ".png", ".gif"]}
+                  maxFileSize={5242880}
+                />
+                <TextField
+                  id="outlined-full-width"
+                  label="Name of Company"
+                  style={{ marginTop: 23, width: 500 }}
+                  placeholder={this.state._name}
+                  required
+                  onChange={(e) => {
+                    this.setState({ _name: e.target.value });
+                  }}
+                  name="name"
+                  margin="normal"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  variant="outlined"
+                />
+                <TextField
+                  id="outlined-full-width"
+                  label="Email"
+                  style={{ marginTop: 23, width: 500 }}
+                  placeholder={this.state._email}
+                  required
+                  onChange={(e) => {
+                    this.setState({ _email: e.target.value });
+                  }}
+                  name="email"
+                  margin="normal"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  variant="outlined"
+                />
+                <TextField
+                  id="outlined-full-width"
+                  label="Phone"
+                  style={{ marginTop: 23, width: 500 }}
+                  placeholder={this.state._phone}
+                  required
+                  onChange={(e) => {
+                    this.setState({ _phone: e.target.value });
+                  }}
+                  name="phone"
+                  margin="normal"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  id="outlined-full-width"
+                  label="Website"
+                  style={{ marginTop: 23, width: 500 }}
+                  placeholder={this.state._website}
+                  required
+                  onChange={(e) => {
+                    this.setState({ _website: e.target.value });
+                  }}
+                  name="website"
+                  margin="normal"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  variant="outlined"
+                />
+                <TextField
+                  id="outlined-full-width"
+                  label="Address"
+                  style={{ marginTop: 23, width: 500 }}
+                  placeholder={this.state._address}
+                  required
+                  onChange={(e) => {
+                    this.setState({ _address: e.target.value });
+                  }}
+                  name="address"
+                  margin="normal"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  variant="outlined"
+                />
+                <TextField
+                  id="outlined-full-width"
+                  label="Short Description"
+                  style={{ marginTop: 23, width: 500 }}
+                  placeholder={this.state._shortDescription}
+                  required
+                  onChange={(e) => {
+                    this.setState({ _shortDescription: e.target.value });
+                  }}
+                  name="shortDescription"
+                  margin="normal"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  variant="outlined"
+                />
+                <TextField
+                  id="outlined-full-width"
+                  label="Long Description"
+                  style={{ marginTop: 23, width: 500 }}
+                  placeholder={this.state._longDescription}
+                  required
+                  onChange={(e) =>
+                    this.setState({ _longDescription: e.target.value })
+                  }
+                  name="longDescription"
+                  margin="normal"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  variant="outlined"
+                />
+                <TextField
+                  id="outlined-full-width"
+                  label="Priority"
+                  style={{ marginTop: 23, width: 500 }}
+                  placeholder={this.state._priority}
+                  required
+                  onChange={(e) => this.setState({ _priority: e.target.value })}
+                  name="priority"
+                  margin="normal"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  variant="outlined"
+                />
+              </Grid>
+            </Grid>
+          </div>
+        </Dialog>
+        <Dialog
+          open={this.state._warning}
+          onClose={() => this.setState({ _warning: false })}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle style={{ color: "#f00" }} id="alert-dialog-title">
+            {"Warning! Are you sure?"}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Once you delete the service, then its sub-services and service
+              providers will also be permanently removed. This can not be
+              undone.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                this.setState({ _warning: false, _loading: false });
+              }}
+              color="primary"
+            >
+              Cancel
+            </Button>
+            <Button
+              color="secondary"
+              onClick={(e) => {
+                this.setState({
+                  _warning: false,
+                  _loading: true,
+                });
+                this.delete_ad(e, this.state.UID);
+              }}
+            >
+              Proceed
+            </Button>
+          </DialogActions>
+        </Dialog>
         {data === null || data === undefined || data.length === 0 ? (
           <div></div>
         ) : (
           data.map(this.get_ad_table)
         )}
-        {this.state.editing ? this.edit_ad() : <div></div>}
       </div>
     );
   }

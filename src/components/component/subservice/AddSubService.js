@@ -63,7 +63,7 @@ export default function AddSubService() {
     } else {
       setLoading(true);
       setWarningAlert(false);
-      // upload image and service data
+
       get_service_uid();
     }
   };

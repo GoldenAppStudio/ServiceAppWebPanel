@@ -6,7 +6,7 @@ import TodayTrendsComponent from "./TodayTrendsComponent";
 import firebase from "../../Firebase";
 
 const database = firebase.database();
-const ref = database.ref("ServiceList");
+const ref = database.ref("service_list");
 const db = firebase.firestore();
 
 const styles = StyleSheet.create({
@@ -51,6 +51,7 @@ const styles = StyleSheet.create({
 var totalCountOfService;
 var totalCountOfAds;
 var countOfServiceProviderRequests;
+var totalCountOfServiceProviders;
 
 class ContentComponent extends React.Component {
   constructor(props) {
@@ -88,10 +89,18 @@ class ContentComponent extends React.Component {
       });
   }
 
+  async get_service_providers_count() {
+    var ref = database.ref("service_providers");
+    await ref.once("value", (snapshot) => {
+      totalCountOfServiceProviders = snapshot.numChildren();
+    });
+  }
+
   componentDidMount() {
     this.get_service_count();
     this.get_ads_count();
     this.get_service_provider_requests_count();
+    this.get_service_providers_count();
   }
 
   render() {
@@ -145,7 +154,13 @@ class ContentComponent extends React.Component {
             <MiniCardComponent
               className={css(styles.miniCardContainer)}
               title="Service Providers"
-              value={<div>---</div>}
+              value={
+                totalCountOfServiceProviders > 0 ? (
+                  totalCountOfServiceProviders
+                ) : (
+                  <div>---</div>
+                )
+              }
             />
           </Row>
         </Row>

@@ -33,49 +33,49 @@ function TabPanel(props) {
 TabPanel.propTypes = {
   children: PropTypes.node,
   index: PropTypes.any.isRequired,
-  value: PropTypes.any.isRequired
+  value: PropTypes.any.isRequired,
 };
 
 function a11yProps(index) {
   return {
     id: `full-width-tab-${index}`,
-    "aria-controls": `full-width-tabpanel-${index}`
+    "aria-controls": `full-width-tabpanel-${index}`,
   };
 }
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",
     flexWrap: "wrap",
     width: "100%",
     "& > * + *": {
-      marginTop: theme.spacing(2)
-    }
+      marginTop: theme.spacing(2),
+    },
   },
   button: {
     width: 500,
     marginTop: 20,
     marginLeft: "22%",
-    marginRight: "22%"
+    marginRight: "22%",
   },
   container: {
     display: "flex",
     flexWrap: "wrap",
-    backgroundColor: theme.palette.background.paper
+    backgroundColor: theme.palette.background.paper,
   },
 
   textField: {
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
-    width: 200
-  }
+    width: 200,
+  },
 }));
 
 export default function Travel() {
   const classes = useStyles();
   const theme = useTheme();
   var cabLink, planeLink, shipLink, hotelLink, tripLink, trainLink;
-  var phoneText, emailText;
+  var ads, emailText;
   var username, password;
   var notification;
 
@@ -85,7 +85,7 @@ export default function Travel() {
   const ref3 = database.ref("AdminLogin");
   const ref4 = database.ref("Notification");
 
-  ref.on("value", snapshot => {
+  ref.on("value", (snapshot) => {
     cabLink = snapshot.child("cab").val();
     planeLink = snapshot.child("plane").val();
     tripLink = snapshot.child("trip").val();
@@ -94,17 +94,17 @@ export default function Travel() {
     shipLink = snapshot.child("ship").val();
   });
 
-  ref2.on("value", snapshot => {
-    emailText = snapshot.child("email").val();
-    phoneText = snapshot.child("phone").val();
+  ref2.on("value", (snapshot) => {
+    emailText = snapshot.child("contactEmail").val();
+    ads = snapshot.child("email_for_ads").val();
   });
 
-  ref3.on("value", snapshot => {
+  ref3.on("value", (snapshot) => {
     username = snapshot.child("user").val();
     password = snapshot.child("pass").val();
   });
 
-  ref4.on("value", snapshot => {
+  ref4.on("value", (snapshot) => {
     notification = snapshot.child("text").val();
   });
 
@@ -115,7 +115,7 @@ export default function Travel() {
   const HOTEL = hotelLink;
   const SHIP = shipLink;
   const EMAIL = emailText;
-  const PHONE = phoneText;
+  const ADS_EMAIL = ads;
   const USER = username;
   const PASS = password;
   const N = notification;
@@ -130,7 +130,7 @@ export default function Travel() {
   const [cab, setCab] = useState(cabLink);
   const [train, setTrain] = useState(trainLink);
   const [email, setEmail] = useState(emailText);
-  const [phone, setPhone] = useState(phoneText);
+  const [ad, setAd] = useState(ads);
   const [user, setUser] = useState(username);
   const [pass, setPass] = useState(password);
   const [n, setN] = useState(notification);
@@ -161,90 +161,50 @@ export default function Travel() {
     };
   }, []);
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
+  const handleChange = (event, newValue) => setValue(newValue);
 
-  const handleChangeIndex = index => {
-    setValue(index);
-  };
+  const handleChangeIndex = (index) => setValue(index);
 
   const update_links_in_db = () => {
     if (trip === "") {
-      database
-        .ref("Travel")
-        .child("trip")
-        .set(TRIP);
+      database.ref("Travel").child("trip").set(TRIP);
     } else if (trip !== undefined) {
-      database
-        .ref("Travel")
-        .child("trip")
-        .set(trip);
+      database.ref("Travel").child("trip").set(trip);
     } else {
     }
 
     if (train === "") {
-      database
-        .ref("Travel")
-        .child("train")
-        .set(TRAIN);
+      database.ref("Travel").child("train").set(TRAIN);
     } else if (train !== undefined) {
-      database
-        .ref("Travel")
-        .child("train")
-        .set(train);
+      database.ref("Travel").child("train").set(train);
     } else {
     }
 
     if (plane === "") {
-      database
-        .ref("Travel")
-        .child("plane")
-        .set(PLANE);
+      database.ref("Travel").child("plane").set(PLANE);
     } else if (plane !== undefined) {
-      database
-        .ref("Travel")
-        .child("plane")
-        .set(plane);
+      database.ref("Travel").child("plane").set(plane);
     } else {
     }
 
     if (cab === "") {
-      database
-        .ref("Travel")
-        .child("cab")
-        .set(CAB);
+      database.ref("Travel").child("cab").set(CAB);
     } else if (cab !== undefined) {
-      database
-        .ref("Travel")
-        .child("cab")
-        .set(cab);
+      database.ref("Travel").child("cab").set(cab);
     } else {
     }
 
     if (hotel === "") {
-      database
-        .ref("Travel")
-        .child("hotel")
-        .set(HOTEL);
+      database.ref("Travel").child("hotel").set(HOTEL);
     } else if (hotel !== undefined) {
-      database
-        .ref("Travel")
-        .child("hotel")
-        .set(hotel);
+      database.ref("Travel").child("hotel").set(hotel);
     } else {
     }
 
     if (ship === "") {
-      database
-        .ref("Travel")
-        .child("ship")
-        .set(SHIP);
+      database.ref("Travel").child("ship").set(SHIP);
     } else if (ship !== undefined) {
-      database
-        .ref("Travel")
-        .child("ship")
-        .set(ship);
+      database.ref("Travel").child("ship").set(ship);
     } else {
     }
 
@@ -253,28 +213,16 @@ export default function Travel() {
 
   const update_contact_info = () => {
     if (email === "") {
-      database
-        .ref("ContactDetails")
-        .child("email")
-        .set(EMAIL);
+      database.ref("ContactDetails").child("contactEmail").set(EMAIL);
     } else if (email !== undefined) {
-      database
-        .ref("ContactDetails")
-        .child("email")
-        .set(email);
+      database.ref("ContactDetails").child("contactEmail").set(email);
     } else {
     }
 
-    if (phone === "") {
-      database
-        .ref("ContactDetails")
-        .child("phone")
-        .set(PHONE);
-    } else if (phone !== undefined) {
-      database
-        .ref("ContactDetails")
-        .child("phone")
-        .set(phone);
+    if (ad === "") {
+      database.ref("ContactDetails").child("email_for_ads").set(ADS_EMAIL);
+    } else if (ad !== undefined) {
+      database.ref("ContactDetails").child("email_for_ads").set(ad);
     } else {
     }
 
@@ -283,28 +231,16 @@ export default function Travel() {
 
   const update_login_details = () => {
     if (user === "") {
-      database
-        .ref("AdminLogin")
-        .child("user")
-        .set(USER);
+      database.ref("AdminLogin").child("user").set(USER);
     } else if (user !== undefined) {
-      database
-        .ref("AdminLogin")
-        .child("user")
-        .set(user);
+      database.ref("AdminLogin").child("user").set(user);
     } else {
     }
 
     if (pass === "") {
-      database
-        .ref("AdminLogin")
-        .child("pass")
-        .set(PASS);
+      database.ref("AdminLogin").child("pass").set(PASS);
     } else if (pass !== undefined) {
-      database
-        .ref("AdminLogin")
-        .child("pass")
-        .set(pass);
+      database.ref("AdminLogin").child("pass").set(pass);
     } else {
     }
 
@@ -313,15 +249,9 @@ export default function Travel() {
 
   const update_notification = () => {
     if (n === "") {
-      database
-        .ref("Notification")
-        .child("text")
-        .set(N);
+      database.ref("Notification").child("text").set(N);
     } else if (n !== undefined) {
-      database
-        .ref("Notification")
-        .child("text")
-        .set(n);
+      database.ref("Notification").child("text").set(n);
     } else {
     }
 
@@ -364,9 +294,9 @@ export default function Travel() {
               placeholder={tripLink}
               margin="normal"
               required
-              onChange={e => setTrip(e.target.value)}
+              onChange={(e) => setTrip(e.target.value)}
               InputLabelProps={{
-                shrink: true
+                shrink: true,
               }}
               variant="outlined"
             />
@@ -377,10 +307,10 @@ export default function Travel() {
               placeholder={hotelLink}
               value={hotel}
               required
-              onChange={e => setHotel(e.target.value)}
+              onChange={(e) => setHotel(e.target.value)}
               margin="normal"
               InputLabelProps={{
-                shrink: true
+                shrink: true,
               }}
               variant="outlined"
             />
@@ -390,11 +320,11 @@ export default function Travel() {
               style={{ margin: 8, width: "100%" }}
               placeholder={planeLink}
               value={plane}
-              onChange={e => setPlane(e.target.value)}
+              onChange={(e) => setPlane(e.target.value)}
               required
               margin="normal"
               InputLabelProps={{
-                shrink: true
+                shrink: true,
               }}
               variant="outlined"
             />
@@ -404,11 +334,11 @@ export default function Travel() {
               style={{ margin: 8, width: "100%" }}
               placeholder={trainLink}
               value={train}
-              onChange={e => setTrain(e.target.value)}
+              onChange={(e) => setTrain(e.target.value)}
               required
               margin="normal"
               InputLabelProps={{
-                shrink: true
+                shrink: true,
               }}
               variant="outlined"
             />
@@ -418,11 +348,11 @@ export default function Travel() {
               style={{ margin: 8, width: "100%" }}
               placeholder={cabLink}
               value={cab}
-              onChange={e => setCab(e.target.value)}
+              onChange={(e) => setCab(e.target.value)}
               required
               margin="normal"
               InputLabelProps={{
-                shrink: true
+                shrink: true,
               }}
               variant="outlined"
             />
@@ -432,11 +362,11 @@ export default function Travel() {
               style={{ margin: 8, width: "100%" }}
               placeholder={shipLink}
               value={ship}
-              onChange={e => setShip(e.target.value)}
+              onChange={(e) => setShip(e.target.value)}
               required
               margin="normal"
               InputLabelProps={{
-                shrink: true
+                shrink: true,
               }}
               variant="outlined"
             />
@@ -454,32 +384,32 @@ export default function Travel() {
           </div>
         </TabPanel>
         <TabPanel value={value} index={1} dir={theme.direction}>
-          <h2>In-App Ad Request Contact</h2>
+          <h2>Contact Form</h2>
           <TextField
             id="outlined-full-width"
-            label="Email"
+            label="General Contact Email"
             style={{ margin: 8, marginTop: 30, width: "100%" }}
             placeholder={emailText}
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             required
             margin="normal"
             InputLabelProps={{
-              shrink: true
+              shrink: true,
             }}
             variant="outlined"
           />
           <TextField
             id="outlined-full-width"
-            label="Phone"
+            label="Contact for In-App Ads"
             style={{ margin: 8, marginTop: 38, width: "100%" }}
-            placeholder={phoneText}
-            value={phone}
-            onChange={e => setPhone(e.target.value)}
+            placeholder={ads}
+            value={ad}
+            onChange={(e) => setAd(e.target.value)}
             required
             margin="normal"
             InputLabelProps={{
-              shrink: true
+              shrink: true,
             }}
             variant="outlined"
           />
@@ -502,11 +432,11 @@ export default function Travel() {
             style={{ margin: 8, marginTop: 7, width: "100%" }}
             placeholder={username}
             value={user}
-            onChange={e => setUser(e.target.value)}
+            onChange={(e) => setUser(e.target.value)}
             required
             margin="normal"
             InputLabelProps={{
-              shrink: true
+              shrink: true,
             }}
             variant="outlined"
           />
@@ -516,11 +446,11 @@ export default function Travel() {
             style={{ margin: 8, marginTop: 10, width: "100%" }}
             placeholder={password}
             value={pass}
-            onChange={e => setPass(e.target.value)}
+            onChange={(e) => setPass(e.target.value)}
             required
             margin="normal"
             InputLabelProps={{
-              shrink: true
+              shrink: true,
             }}
             variant="outlined"
           />
@@ -539,7 +469,7 @@ export default function Travel() {
             aria-label="empty textarea"
             placeholder={notification}
             value={n}
-            onChange={e => setN(e.target.value)}
+            onChange={(e) => setN(e.target.value)}
             style={{ marginTop: 2 }}
           />
           <Button
