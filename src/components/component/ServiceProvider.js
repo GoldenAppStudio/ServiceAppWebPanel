@@ -272,6 +272,7 @@ export default class ServiceProvider extends Component {
               () => {
                 // complete function ....
                 this.setState({ open: false, loading: false });
+                alert("Data updated");
               }
             );
           }

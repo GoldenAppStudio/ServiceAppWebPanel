@@ -30,15 +30,7 @@ const database = firebase.database();
 const ref = database.ref("ShowAd");
 var storageRef = firebase.storage().ref();
 var data = [];
-var d;
-storageRef
-  .child(`ads_images/${3}.jpg`)
-  .getDownloadURL()
-  .then(function (url) {
-    this.setState({ showImage: url });
-    d = url;
-  })
-  .catch(function () {});
+var generated_id = Date.now();
 
 export default class AdsManagement extends Component {
   constructor(props) {
@@ -74,6 +66,7 @@ export default class AdsManagement extends Component {
       _warning: false,
       _loading: false,
       showImage: "",
+      id: "",
     };
     this.interval = setInterval(
       () => this.setState({ time: Date.now() }),
@@ -109,7 +102,7 @@ export default class AdsManagement extends Component {
       this.setState({ loading: false });
     } else {
       const uploadTask = storage
-        .child(`ads_images/${this.state.count + 1}.jpg`)
+        .child(`ads_images/${generated_id}.jpg`)
         .put(this.state.image);
       uploadTask.on(
         "state_changed",
@@ -164,7 +157,7 @@ export default class AdsManagement extends Component {
     ref
       .child(this.state.count + 1)
       .child("id")
-      .set(this.state.count + 1);
+      .set(generated_id);
     ref
       .child(this.state.count + 1)
       .child("UID")
@@ -191,7 +184,6 @@ export default class AdsManagement extends Component {
   };
 
   delete_ad = (e, snapshot) => {
-    console.log(snapshot);
     ref.child(snapshot).remove();
     this.adjust_database(snapshot);
   };
@@ -210,7 +202,6 @@ export default class AdsManagement extends Component {
   async adjust_database(id) {
     if (id < this.state.count) {
       var loopCount = this.state.count - id;
-      // console.log(loopCount + " loopCount");
       for (var i = 0; i < loopCount; i++) {
         var newData = await this.return_data(i, id);
         setTimeout(() => {}, 6);
@@ -227,17 +218,6 @@ export default class AdsManagement extends Component {
     window.location.reload();
     alert("In-App Ad removed from database.");
   }
-
-  set_image = (id) => {
-    storageRef
-      .child(`ads_images/${id}.jpg`)
-      .getDownloadURL()
-      .then(function (url) {
-        this.setState({ showImage: url });
-        d = url;
-      })
-      .catch(function () {});
-  };
 
   get_ad_table = (snapshot) => {
     return (
@@ -286,6 +266,7 @@ export default class AdsManagement extends Component {
                 _priority: snapshot.priority,
                 _address: snapshot.address,
                 UID: snapshot.UID,
+                id: snapshot.id,
                 snapshot: snapshot,
                 snap: snapshot,
               });
@@ -320,8 +301,9 @@ export default class AdsManagement extends Component {
   update_data = () => {
     if (this.state._image !== null) {
       const uploadTask = storage
-        .child(`ads_images/${this.state.UID + 1}.jpg`)
-        .put(this.state.UID);
+        .child(`ads_images/${this.state.id}.jpg`)
+        .put(this.state._image);
+      console.log(this.state.id + " + 000");
       uploadTask.on(
         "state_changed",
         (snapshot) => {
@@ -333,43 +315,82 @@ export default class AdsManagement extends Component {
         },
         () => {
           // complete function ....
+          ref.child(this.state.UID).child("name").set(this.state._name.trim());
+          ref
+            .child(this.state.UID)
+            .child("email")
+            .set(this.state._email.trim());
+          ref
+            .child(this.state.UID)
+            .child("phone")
+            .set(this.state._phone.trim());
+          if (this.state._priority !== "") {
+            ref
+              .child(this.state.UID)
+              .child("priority")
+              .set(parseInt(this.state._priority));
+          }
+
+          ref
+            .child(this.state.UID)
+            .child("address")
+            .set(this.state._address.trim());
+          ref
+            .child(this.state.UID)
+            .child("shortDisc")
+            .set(this.state._shortDescription.trim());
+          ref
+            .child(this.state.UID)
+            .child("longDisc")
+            .set(this.state._longDescription.trim());
+          ref.child(this.state.UID).child("website").set(this.state._website);
+          this.setState({ loading: false, editing: false });
+          // window.location.reload();
+          alert("In-App Ad updated in database.");
         }
       );
+    } else {
+      ref.child(this.state.UID).child("name").set(this.state._name.trim());
+      ref.child(this.state.UID).child("email").set(this.state._email.trim());
+      ref.child(this.state.UID).child("phone").set(this.state._phone.trim());
+      if (this.state._priority !== "") {
+        ref
+          .child(this.state.UID)
+          .child("priority")
+          .set(parseInt(this.state._priority));
+      }
+
+      ref
+        .child(this.state.UID)
+        .child("address")
+        .set(this.state._address.trim());
+      ref
+        .child(this.state.UID)
+        .child("shortDisc")
+        .set(this.state._shortDescription.trim());
+      ref
+        .child(this.state.UID)
+        .child("longDisc")
+        .set(this.state._longDescription.trim());
+      ref.child(this.state.UID).child("website").set(this.state._website);
+      this.setState({ loading: false, editing: false });
+      // window.location.reload();
+      alert("In-App Ad updated in database.");
     }
-    ref.child(this.state.UID).child("name").set(this.state._name.trim());
-    ref.child(this.state.UID).child("email").set(this.state._email.trim());
-    ref.child(this.state.UID).child("phone").set(this.state._phone.trim());
-    ref
-      .child(this.state.UID)
-      .child("priority")
-      .set(parseInt(this.state._priority.trim()));
-    ref.child(this.state.UID).child("address").set(this.state._address.trim());
-    ref
-      .child(this.state.UID)
-      .child("shortDisc")
-      .set(this.state._shortDescription.trim());
-    ref
-      .child(this.state.UID)
-      .child("longDisc")
-      .set(this.state._longDescription.trim());
-    ref.child(this.state.UID).child("website").set(this.state._website);
-    this.setState({ loading: false, editing: false });
-    window.location.reload();
-    alert("In-App Ad updated in database.");
   };
 
   componentDidMount() {
     this.get_child_count();
     this.get_ads();
-    this.set_image(3);
+    //this.set_image(3);
   }
 
-  fetch_images = (UID) => {
+  fetch_images = (id) => {
     var storage = firebase.storage();
     var storageRef = storage.ref();
     storageRef
       .child("ads_images")
-      .child(UID + ".jpg")
+      .child(id + ".jpg")
       .getDownloadURL()
       .then((url) => {
         this.setState({ url: url });
@@ -611,7 +632,7 @@ export default class AdsManagement extends Component {
           onClose={() => this.setState({ editing: false })}
           TransitionComponent={this.Transition}
         >
-          {this.fetch_images(this.state.UID)}
+          {this.fetch_images(this.state.id)}
           <AppBar
             style={{
               position: "relative",
