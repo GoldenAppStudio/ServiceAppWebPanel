@@ -99,6 +99,7 @@ async function _populate_source_list() {
 }
 
 function populate_destination_list() {
+  _endList = []
   ref.on("value", (snapshot) => {
     snapshot.forEach((childSnapshot) => {
       if (childSnapshot.child("start").val() === _source) {

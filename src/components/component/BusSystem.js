@@ -134,7 +134,7 @@ export default class BusSystem extends Component {
                 end: this.state._EndTime,
                 source: this.state._Start,
                 destination: this.state._End,
-                uid: count + 1,
+                uid: (count + 1).toString(),
               });
             this.setState({ loading: false, open: false });
             window.location.reload();

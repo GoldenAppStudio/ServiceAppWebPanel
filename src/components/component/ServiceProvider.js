@@ -38,9 +38,8 @@ const db = database.ref();
 var ssc;
 var data = [];
 var stateList = [];
-for (var i = 0; i < 35; i++) {
-  stateList = stateList.concat(state.states[i].state);
-}
+for (var i = 0; i < 35; i++)  stateList = stateList.concat(state.states[i].state);
+
 
 var mState, mDistrict, mService, mSubService;
 var distList = [];
@@ -55,12 +54,14 @@ export default class ServiceProvider extends Component {
       _Description: "",
       _Phone: "",
       _Image: null,
+      _Company: "",
       _name: "",
       _email: "",
       _address: "",
       _description: "",
       _phone: "",
       _image: null,
+      _company: "",
       open: false,
       count: 0,
       editing: false,
@@ -247,7 +248,8 @@ export default class ServiceProvider extends Component {
   update_data = () => {
     var mRef = database.ref();
 
-    mRef
+    if(this.state._company === "") {
+      mRef
       .child("service_providers")
       .child(this.state.SP_UID)
       .update(
@@ -275,46 +277,129 @@ export default class ServiceProvider extends Component {
                 alert("Data updated");
               }
             );
+          } else {
+            this.setState({ open: false, loading: false });
+                alert("Data updated");
+                window.location.reload()
           }
         }
       );
+    } else {
+      mRef
+      .child("service_providers")
+      .child(this.state.SP_UID)
+      .update(
+        {
+          name: this.state._name.trim(),
+          email: this.state._email.trim(),
+          phone: "+91" + this.state._phone.trim(),
+          address: this.state._address.trim(),
+          company: this.state._company,
+          description: this.state._description.trim(),
+        },
+        () => {
+          if (this.state._image !== null) {
+            const uploadTask = storage
+              .child(`service_provider_images/${this.state.SP_UID}.jpg`)
+              .put(this.state._image);
+            uploadTask.on(
+              "state_changed",
+              (snapshot) => {},
+              (error) => {
+                console.log(error);
+              },
+              () => {
+                // complete function ....
+                this.setState({ open: false, loading: false });
+                alert("Data updated");
+              }
+            );
+          } else {
+            this.setState({ open: false, loading: false });
+                alert("Data updated");
+                window.location.reload()
+          }
+        }
+      );
+    }
+    
   };
 
   upload_image = () => {
     var mRef = database.ref();
     var pushRef = mRef.child("service_providers").push();
-    pushRef.set(
-      {
-        name: this.state._Name.trim(),
-        email: this.state._Email.trim(),
-        phone: "+91" + this.state._Phone.trim(),
-        address: this.state._Address.trim(),
-        description: this.state._Description.trim(),
-        state: this.state.stateX.trim(),
-        district: this.state.districtX.trim(),
-        service: this.state.SERVICE_UID.trim(),
-        sub_service: this.state.SUB_SERVICE_UID.trim(),
-        UID: pushRef.key.toString().trim(),
-      },
-      () => {
-        if (this.state._Image !== null) {
-          const uploadTask = storage
-            .child(`service_provider_images/${pushRef.key.toString()}.jpg`)
-            .put(this.state._Image);
-          uploadTask.on(
-            "state_changed",
-            (snapshot) => {},
-            (error) => {
-              console.log(error);
-            },
-            () => {
-              // complete function ....
-              this.setState({ open: false, loading: false });
-            }
-          );
+    if(this.state._Company === "") {
+      pushRef.set(
+        {
+          name: this.state._Name.trim(),
+          email: this.state._Email.trim(),
+          phone: "+91" + this.state._Phone.trim(),
+          address: this.state._Address.trim(),
+          description: this.state._Description.trim(),
+          state: this.state.stateX.trim(),
+          district: this.state.districtX.trim(),
+          service: this.state.SERVICE_UID.trim(),
+          sub_service: this.state.SUB_SERVICE_UID.trim(),
+          UID: pushRef.key.toString().trim(),
+        },
+        () => {
+          if (this.state._Image !== null) {
+            const uploadTask = storage
+              .child(`service_provider_images/${pushRef.key.toString()}.jpg`)
+              .put(this.state._Image);
+            uploadTask.on(
+              "state_changed",
+              (snapshot) => {},
+              (error) => {
+                console.log(error);
+              },
+              () => {
+                // complete function ....
+                this.setState({ open: false, loading: false });
+                alert("")
+              }
+            );
+          } else {
+
+          }
         }
-      }
-    );
+      ); 
+    } else {
+      pushRef.set(
+        {
+          name: this.state._Name.trim(),
+          email: this.state._Email.trim(),
+          phone: "+91" + this.state._Phone.trim(),
+          address: this.state._Address.trim(),
+          description: this.state._Description.trim(),
+          state: this.state.stateX.trim(),
+          district: this.state.districtX.trim(),
+          service: this.state.SERVICE_UID.trim(),
+          company: this.state._Company,
+          sub_service: this.state.SUB_SERVICE_UID.trim(),
+          UID: pushRef.key.toString().trim(),
+        },
+        () => {
+          if (this.state._Image !== null) {
+            const uploadTask = storage
+              .child(`service_provider_images/${pushRef.key.toString()}.jpg`)
+              .put(this.state._Image);
+            uploadTask.on(
+              "state_changed",
+              (snapshot) => {},
+              (error) => {
+                console.log(error);
+              },
+              () => {
+                // complete function ....
+                this.setState({ open: false, loading: false });
+              }
+            );
+          }
+        }
+      );
+    }
+   
   };
 
   upload_data = () => {
@@ -665,6 +750,22 @@ export default class ServiceProvider extends Component {
                   }}
                   variant="outlined"
                 />
+
+                <TextField
+                  id="outlined-full-width"
+                  label="Company"
+                  style={{ marginTop: 23, width: 500 }}
+                  placeholder=""
+                  onChange={(e) => {
+                    this.setState({ _Company: e.target.value });
+                  }}
+                  name="name"
+                  margin="normal"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  variant="outlined"
+                />
               </Grid>
               <Grid item xs={6}>
                 <TextField
@@ -858,6 +959,22 @@ export default class ServiceProvider extends Component {
                 />
               </Grid>
               <Grid item xs={6}>
+              <TextField
+                  id="outlined-full-width"
+                  label="Company"
+                  style={{ marginTop: 23, width: 500 }}
+                  placeholder={this.state.snap.company}
+                  required
+                  onChange={(e) => {
+                    this.setState({ _company: e.target.value });
+                  }}
+                  name="email"
+                  margin="normal"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  variant="outlined"
+                />
                 <TextField
                   id="outlined-full-width"
                   label="Email"
