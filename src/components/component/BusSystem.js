@@ -33,6 +33,9 @@ const database = firebase.database();
 const ref = database.ref("Bus");
 var storageRef = firebase.storage().ref();
 var data = [];
+var startList = [];
+var endList = [];
+
 var d;
 storageRef
   .child(`ads_images/${3}.jpg`)
@@ -61,8 +64,6 @@ export default class BusSystem extends Component {
       _End: "",
       _UID: "",
       snap: {},
-      startList: [],
-      endList: [],
       open: false,
       count: 0,
       scroll: "paper",
@@ -105,106 +106,60 @@ export default class BusSystem extends Component {
     if (
       this.state._Name === "" ||
       this.state._Fair === "" ||
-      this.state._StartPlace === "" ||
-      this.state._EndPlace === "" ||
       this.state._StartTime === "" ||
       this.state._EndTime === ""
     ) {
       alert("Please add all required field!");
       this.setState({ loading: false });
     } else {
-      var ref1 = database.ref("BusRoute");
-      ref1.once("value", (snapshot) => {
-        snapshot.forEach((ds) => {
-          if (ds.child("start").val() === this.state._StartPlace) {
-            this.setState({ _startPlaceMatch: true });
-            ds.child("end").forEach((cs) => {
-              if (cs.child("name").val() === this.state._EndPlace) {
-                this.setState({ _endPlaceMatch: true });
-                var ref2 = database.ref("Bus");
-                ref2
-                  .child(this.state._StartPlace)
-                  .child(this.state._EndPlace)
-                  .once("value", (value) => {
-                    if (value.exists()) {
-                      ref2
-                        .child(this.state._StartPlace)
-                        .child(this.state._EndPlace)
-                        .child(`${value.numChildren() + 1}`)
-                        .child("name")
-                        .set(this.state._Name);
-                      ref2
-                        .child(this.state._StartPlace)
-                        .child(this.state._EndPlace)
-                        .child(`${value.numChildren() + 1}`)
-                        .child("source")
-                        .set(this.state._StartPlace);
-                      ref2
-                        .child(this.state._StartPlace)
-                        .child(this.state._EndPlace)
-                        .child(`${value.numChildren() + 1}`)
-                        .child("destination")
-                        .set(this.state._EndPlace);
-                      ref2
-                        .child(this.state._StartPlace)
-                        .child(this.state._EndPlace)
-                        .child(`${value.numChildren() + 1}`)
-                        .child("start")
-                        .set(this.state._StartTime);
-                      ref2
-                        .child(this.state._StartPlace)
-                        .child(this.state._EndPlace)
-                        .child(`${value.numChildren() + 1}`)
-                        .child("end")
-                        .set(this.state._EndTime);
-                      ref2
-                        .child(this.state._StartPlace)
-                        .child(this.state._EndPlace)
-                        .child(`${value.numChildren() + 1}`)
-                        .child("cname")
-                        .set(this.state._CName);
-                      ref2
-                        .child(this.state._StartPlace)
-                        .child(this.state._EndPlace)
-                        .child(`${value.numChildren() + 1}`)
-                        .child("dname")
-                        .set(this.state._DName);
-                      ref2
-                        .child(this.state._StartPlace)
-                        .child(this.state._EndPlace)
-                        .child(`${value.numChildren() + 1}`)
-                        .child("fair")
-                        .set(this.state._Fair);
-                      ref2
-                        .child(this.state._StartPlace)
-                        .child(this.state._EndPlace)
-                        .child(`${value.numChildren() + 1}`)
-                        .child("cno")
-                        .set(this.state._CNo);
-                      ref2
-                        .child(this.state._StartPlace)
-                        .child(this.state._EndPlace)
-                        .child(`${value.numChildren() + 1}`)
-                        .child("dno")
-                        .set(this.state._DNo);
-                      ref2
-                        .child(this.state._StartPlace)
-                        .child(this.state._EndPlace)
-                        .child(`${value.numChildren() + 1}`)
-                        .child("uid")
-                        .set(`${value.numChildren() + 1}`);
-                      alert("Bus Added");
-                      this.setState({ open: false, loading: false });
-                    }
-                  });
-              }
-            });
+      var ref1 = database.ref("Bus");
+      ref1
+        .child(this.state._Start)
+        .child(this.state._End)
+        .once("value", (snapshot) => {
+          if (snapshot.exists()) {
+            var count = snapshot.numChildren();
+            ref1
+              .child(this.state._Start)
+              .child(this.state._End)
+              .child(count + 1)
+              .set({
+                cname: this.state._CName,
+                cno: this.state._CNo,
+                dname: this.state._DName,
+                dno: this.state._DNo,
+                name: this.state._Name,
+                fair: this.state._Fair,
+                start: this.state._StartTime,
+                end: this.state._EndTime,
+                source: this.state._Start,
+                destination: this.state._End,
+                uid: count + 1,
+              });
+            this.setState({ loading: false, open: false });
+            window.location.reload();
+          } else {
+            ref1
+              .child(this.state._Start)
+              .child(this.state._End)
+              .child("1")
+              .set({
+                cname: this.state._CName,
+                cno: this.state._CNo,
+                dname: this.state._DName,
+                dno: this.state._DNo,
+                name: this.state._Name,
+                fair: this.state._Fair,
+                start: this.state._StartTime,
+                end: this.state._EndTime,
+                source: this.state._Start,
+                destination: this.state._End,
+                uid: "1",
+              });
+            this.setState({ loading: false, open: false });
+            window.location.reload();
           }
         });
-        if (!this.state._startPlaceMatch) {
-          console.log("here");
-        }
-      });
     }
   };
 
@@ -396,11 +351,7 @@ export default class BusSystem extends Component {
     var ref3 = database.ref("BusRoute");
     ref3.once("value", (snapshot) => {
       snapshot.forEach((childSnapshot) => {
-        this.setState({
-          startList: this.state.startList.concat([
-            childSnapshot.child("start").val(),
-          ]),
-        });
+        startList = startList.concat(childSnapshot.child("start").val());
       });
     });
   };
@@ -411,11 +362,7 @@ export default class BusSystem extends Component {
       snapshot.forEach((childSnapshot) => {
         if (childSnapshot.child("start").val() === e) {
           childSnapshot.child("end").forEach((snapshot) => {
-            this.setState({
-              endList: this.state.endList.concat([
-                snapshot.child("name").val(),
-              ]),
-            });
+            endList = endList.concat(snapshot.child("name").val());
           });
         }
       });
@@ -458,7 +405,16 @@ export default class BusSystem extends Component {
           </ExpansionPanelSummary>
         </ExpansionPanel>
         <Fab
-          onClick={() => this.setState({ open: true })}
+          onClick={() => {
+            if (
+              this.state._Start === "" ||
+              this.state._End === "" ||
+              this.state._Start === "Choose Source" ||
+              this.state._End === "Choose Destination"
+            ) {
+              alert("Please choose starting and ending points");
+            } else this.setState({ open: true });
+          }}
           color="primary"
           aria-label="add"
           style={{ right: 35, position: "fixed", bottom: 35 }}
@@ -531,38 +487,7 @@ export default class BusSystem extends Component {
                   }}
                   variant="outlined"
                 />
-                <TextField
-                  id="outlined-full-width"
-                  label="Starting Point"
-                  style={{ marginTop: 23, width: 500 }}
-                  placeholder="Starting Point"
-                  required
-                  onChange={(e) => {
-                    this.setState({ _StartPlace: e.target.value });
-                  }}
-                  name="name"
-                  margin="normal"
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  variant="outlined"
-                />
-                <TextField
-                  id="outlined-full-width"
-                  label="Ending Point"
-                  style={{ marginTop: 23, width: 500 }}
-                  placeholder="Ending Point"
-                  required
-                  onChange={(e) => {
-                    this.setState({ _EndPlace: e.target.value });
-                  }}
-                  name="name"
-                  margin="normal"
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  variant="outlined"
-                />
+
                 <TextField
                   id="outlined-full-width"
                   label="Start Time"
@@ -594,8 +519,6 @@ export default class BusSystem extends Component {
                   }}
                   variant="outlined"
                 />
-              </Grid>
-              <Grid item xs={6}>
                 <TextField
                   id="outlined-full-width"
                   label="Fair"
@@ -612,6 +535,8 @@ export default class BusSystem extends Component {
                   }}
                   variant="outlined"
                 />
+              </Grid>
+              <Grid item xs={6}>
                 <TextField
                   id="outlined-full-width"
                   label="Driver's name"
@@ -951,7 +876,8 @@ export default class BusSystem extends Component {
                 value={this.state._Start}
                 name="_Start"
                 onChange={(e) => {
-                  this.setState({ endList: [], _Start: e.target.value });
+                  this.setState({ _Start: e.target.value });
+                  endList = [];
                   this.get_end_items(e.target.value);
                 }}
                 inputProps={{ "aria-label": "service" }}
@@ -959,7 +885,7 @@ export default class BusSystem extends Component {
                 <option value="" placeholder>
                   Choose Source
                 </option>
-                {this.state.startList.map((x) => (
+                {startList.map((x) => (
                   <option value={x}>{x}</option>
                 ))}
               </NativeSelect>
@@ -981,7 +907,7 @@ export default class BusSystem extends Component {
                 <option value="Choose Sub-Service" placeholder>
                   Choose Destination
                 </option>
-                {this.state.endList.map((x) => (
+                {endList.map((x) => (
                   <option value={x}>{x}</option>
                 ))}
               </NativeSelect>

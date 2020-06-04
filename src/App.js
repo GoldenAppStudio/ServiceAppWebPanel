@@ -12,6 +12,7 @@ import AdsManagement from "./components/component/AdsManagement";
 import ServiceProvider from "./components/component/ServiceProvider";
 import DeleteTheService from "./components/component/DeleteTheService";
 import BusSystem from "./components/component/BusSystem";
+import BusRoute from "./components/component/BusRoute";
 
 const styles = StyleSheet.create({
   container: {
@@ -57,6 +58,8 @@ class App extends React.Component {
         return <BusSystem />;
       case "SP":
         return <ServiceProvider />;
+      case "BusRoute":
+        return <BusRoute />;
       default:
         return <ContentComponent />;
     }

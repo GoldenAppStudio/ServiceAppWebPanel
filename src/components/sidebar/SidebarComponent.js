@@ -185,11 +185,23 @@ function SidebarComponent({ onChange, selectedItem }) {
               active={selectedItem === "Ad"}
             />
             <MenuItemComponent
-              title="Bus System"
+              title="Bus Route"
+              icon={IconContacts}
+              onClick={() => onItemClicked("BusRoute")}
+              active={selectedItem === "BusRoute"}
+            />
+            <MenuItemComponent
+              title="Bus List"
               icon={IconContacts}
               onClick={() => onItemClicked("Bus")}
               active={selectedItem === "Bus"}
             />
+            {/*  <MenuItemComponent
+              title="Add Bus"
+              icon={IconContacts}
+              onClick={() => onItemClicked("BusAdd")}
+              active={selectedItem === "Bus"}
+            /> */}
             <div className={css(styles.separator)}></div>
             <MenuItemComponent
               title="Settings"
