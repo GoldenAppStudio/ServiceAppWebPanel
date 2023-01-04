@@ -18,7 +18,7 @@
     "react-scripts": "3.0.1",
     "react-svg-line-chart": "^2.0.1",
     "react-swipeable-views": "^0.13.9",
-    "simple-flexbox": "^2.2.1"
+    "simple-flexbox": "^2.3.0"
   },
   "scripts": {
     "start": "react-scripts start",
